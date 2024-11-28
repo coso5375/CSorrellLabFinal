@@ -4,7 +4,7 @@
  *  Created on: Dec 30, 2023
  *      Author: Xavion
  */
-
+#include "Scheduler.h"
 #include "LCD_Driver.h"
 #include "stm32f4xx_hal.h"
 

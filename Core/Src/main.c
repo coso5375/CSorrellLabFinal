@@ -20,18 +20,19 @@
 #include "main.h"
 #include "ApplicationCode.h"
 
+
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 void SystemClockOverride(void);
 // static void MX_GPIO_Init(void);
-
+extern void initialise_monitor_handles(void);
 /**
   * @brief  The application entry point.
   * @retval int
   */
 int main(void)
 {
-
+  initialise_monitor_handles();
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
@@ -43,7 +44,9 @@ int main(void)
 
   LCD_Visual_Demo();
 
+  //uint32_t eventsToRun;
   HAL_Delay(5000);
+
 
   // DO NOT CALL THIS FUNCTION WHEN INTERRUPT MODE IS SELECTED IN THE COMPILE SWITCH IN stmpe811.h
   // Un-comment the below function after setting COMPILE_TOUCH to 1 in stmpe811.h

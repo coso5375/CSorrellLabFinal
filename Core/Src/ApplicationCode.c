@@ -22,10 +22,12 @@ void LCDTouchScreenInterruptGPIOInit(void);
 
 void ApplicationInit(void)
 {
-	initialise_monitor_handles(); // Allows printf functionality
+	//initialise_monitor_handles(); // Allows printf functionality
     LTCD__Init();
     LTCD_Layer_Init(0);
     LCD_Clear(0,LCD_COLOR_WHITE);
+
+
 
     #if COMPILE_TOUCH_FUNCTIONS == 1
 	InitializeLCDTouch();
@@ -37,8 +39,10 @@ void ApplicationInit(void)
 	#if TOUCH_INTERRUPT_ENABLED == 1
 	LCDTouchScreenInterruptGPIOInit();
 	#endif // TOUCH_INTERRUPT_ENABLED
-
 	#endif // COMPILE_TOUCH_FUNCTIONS
+
+
+
 }
 
 void LCD_Visual_Demo(void)
@@ -152,4 +156,6 @@ void EXTI15_10_IRQHandler()
 }
 #endif // TOUCH_INTERRUPT_ENABLED
 #endif // COMPILE_TOUCH_FUNCTIONS
+
+
 

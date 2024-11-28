@@ -226,7 +226,11 @@ void LCD_Draw_Circle_Fill(uint16_t Xpos, uint16_t Ypos, uint16_t radius, uint16_
             }
         }
     }
+
 }
+
+
+
 
 void LCD_Draw_Vertical_Line(uint16_t x, uint16_t y, uint16_t len, uint16_t color)
 {
@@ -235,6 +239,7 @@ void LCD_Draw_Vertical_Line(uint16_t x, uint16_t y, uint16_t len, uint16_t color
 	  LCD_Draw_Pixel(x, i+y, color);
   }
 }
+
 
 void LCD_Clear(uint8_t LayerIndex, uint16_t Color)
 {

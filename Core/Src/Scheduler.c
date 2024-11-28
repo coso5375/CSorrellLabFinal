@@ -36,6 +36,16 @@ void removeSchedulerEvents(uint32_t event)
 	ScheduledEvents &= ~event;
 }
 
+void Scheduler_Tick(void) {
+    static uint32_t lastGameTick = 0;
+    uint32_t currentTime = HAL_GetTick();
+
+    if ((currentTime - lastGameTick) >= 3000) {
+        ScheduledEvents |= GAME_TICK_EVENT;
+        lastGameTick = currentTime;
+    }
+}
+
 //We will then need to add functionality that will add, remove, and return the
 //contents of ‘scheduledEvents’
 
