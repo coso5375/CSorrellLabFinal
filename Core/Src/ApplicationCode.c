@@ -41,7 +41,7 @@ void ApplicationInit(void)
 	#endif // TOUCH_INTERRUPT_ENABLED
 	#endif // COMPILE_TOUCH_FUNCTIONS
 
-
+	Game_Init();
 
 }
 

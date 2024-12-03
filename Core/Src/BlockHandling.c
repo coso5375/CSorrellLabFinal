@@ -7,7 +7,7 @@
 #include <BlockHandling.h>
 
 const BlockShape T = { 		// T block
-    .shapes = {
+    .shape_rotations = {
         0b0000010011100000, // default rotation
         0b0000010001100100, // 90-degree rotation
         0b0000000011100100, // 180-degree rotation
@@ -17,7 +17,7 @@ const BlockShape T = { 		// T block
 };
 
 const BlockShape I = { 		// I block
-    .shapes = {
+    .shape_rotations = {
         0b0100010001000100, // default rotation (0 degrees)
         0b0000111100000000, // 90 degrees
         0b0100010001000100, // 180 degrees
@@ -51,7 +51,7 @@ void drawBlock(const TetrisBlockPropertiesTypeDef *block)
 
 void deleteBlock(const TetrisBlockPropertiesTypeDef *block)
 {
-    uint16_t shapeData = block->shapeType->shapes[block->rotation % 4]; //grab the 16 bit shape
+    uint16_t shapeData = block->shapeType->shape_rotations[block->rotation % 4]; //grab the 16 bit shape
 
     for (int row = 0; row < 4; row++) //loop through the 4x4 grid of the shape
     {
@@ -76,7 +76,7 @@ void deleteBlock(const TetrisBlockPropertiesTypeDef *block)
 
 bool detectCollision(const TetrisBlockPropertiesTypeDef *block, uint8_t gameGrid[GRID_HEIGHT / block->cellsize][GRID_WIDTH / block->cellsize], int MOVE_X, int MOVE_Y)
 {
-    uint16_t shapeData = block->shapeType->shapes[block->rotation % 4]; //grab 16 bit shape
+    uint16_t shapeData = block->shapeType->shape_rotations[block->rotation % 4]; //grab 16 bit shape
     int blockTopLeftX = (block->x / block->cellsize) + MOVE_X; //top left (x,y) coords of the block, taking into account the next 'movement'
     int blockTopLeftY = (block->y / block->cellsize) + MOVE_Y;
     //divide by cell size to get grid coordinates
@@ -113,9 +113,10 @@ bool detectCollision(const TetrisBlockPropertiesTypeDef *block, uint8_t gameGrid
     return false; //no collision detected
 }
 
-void lockBlock(const TetrisBlockPropertiesTypeDef *block, uint8_t gameGrid[GRID_HEIGHT / 24][GRID_WIDTH / 24])
+void lockBlock(const TetrisBlockPropertiesTypeDef *block, uint8_t gameGrid[GRID_HEIGHT / block->cellsize][GRID_WIDTH / block->cellsize])
 {
-    uint16_t shapeData = block->shapeType->shapes[block->rotation % 4]; // get the 16 bits for the shape
+	//**need to edit this function so that it checks for collisions before spawning a block (if grid gets full)
+    uint16_t shapeData = block->shapeType->shape_rotations[block->rotation % 4]; // get the 16 bits for the shape
     int blockTopLeftX = block->x / block->cellsize; // get the top left (x,y) coords in the grid
     int blockTopLeftY = block->y / block->cellsize;
 
@@ -127,8 +128,8 @@ void lockBlock(const TetrisBlockPropertiesTypeDef *block, uint8_t gameGrid[GRID_
         {
             if (rowBits & (1 << (3 - col))) //bitmask to check if the specific bit/cell is "ocupied"
             { // if the cell has a block,
-                int gridX = baseX + col; // grab the (x,y) coords of the current cell
-                int gridY = baseY + row;
+                int gridX = blockTopLeftX + col; // grab the (x,y) coords of the current cell
+                int gridY = blockTopLeftY + row;
                 // permanently lock the block into the game grid by setting the color of the cells
                 gameGrid[gridY][gridX] = block->shapeType->color;
             }
@@ -138,11 +139,10 @@ void lockBlock(const TetrisBlockPropertiesTypeDef *block, uint8_t gameGrid[GRID_
 
 void spawnBlock(TetrisBlockPropertiesTypeDef *block, const BlockShape *shapeType)
 {
-
-    block->x = (GRID_WIDTH / 2 - block->cellsize) - block->cellsize; // setting start x coord
+	block->cellsize = 24; // initialize cellsize to 24 (should be smaller for a real 10x20 tetris grid)
+    block->x = (GRID_WIDTH / 2) - (block->cellsize); // setting start x coord
     block->y = 48; // start y coord
-    block->cellsize = 24; // initialize cellsize to 24 (should be smaller for a real 10x20 tetris grid)
-    block->color = shapeType->color; // initialize block color
+    block->block_color = shapeType->color; // initialize block color
     block->rotation = 0; // start at NO rotation
     block->shapeType = shapeType;
     drawBlock(block);

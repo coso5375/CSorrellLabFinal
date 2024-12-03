@@ -11,21 +11,20 @@
 
 #include "LCD_Driver.h"
 #include <stdint.h>
+#include <stdio.h>
 
 #define GRID_HEIGHT 320
 #define GRID_WIDTH 240
-
-
-//read only, declared here but defined in source file
-extern const BlockShape T;
-extern const BlockShape I;
-
 
 typedef struct
 {
     uint16_t shape_rotations[4]; // 4 rotations
     uint16_t color;
 } BlockShape;
+
+//read only, declared here but defined in source file
+extern const BlockShape T;
+extern const BlockShape I;
 
 typedef struct
 {

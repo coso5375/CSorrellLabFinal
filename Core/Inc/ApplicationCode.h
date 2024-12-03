@@ -5,10 +5,10 @@
  *      Author: Xavion
  */
 #include "Scheduler.h"
-#include "LCD_Driver.h"
+#include "GameHandling.h"
 #include "stm32f4xx_hal.h"
 
-#include <stdio.h>
+
 
 
 #ifndef INC_APPLICATIONCODE_H_
