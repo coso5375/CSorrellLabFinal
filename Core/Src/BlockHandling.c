@@ -112,3 +112,68 @@ bool detectCollision(const TetrisBlockPropertiesTypeDef *block, uint8_t gameGrid
     }
     return false; //no collision detected
 }
+
+void lockBlock(const TetrisBlockPropertiesTypeDef *block, uint8_t gameGrid[GRID_HEIGHT / 24][GRID_WIDTH / 24])
+{
+    uint16_t shapeData = block->shapeType->shapes[block->rotation % 4]; // get the 16 bits for the shape
+    int blockTopLeftX = block->x / block->cellsize; // get the top left (x,y) coords in the grid
+    int blockTopLeftY = block->y / block->cellsize;
+
+    for (int row = 0; row < 4; row++) // loop thru the blocks 4x4 grid of bits
+    {
+        uint8_t rowBits = (shapeData >> (12 - row * 4)) & 0xF; // extract the 4 bits for the current row
+
+        for (int col = 0; col < 4; col++)
+        {
+            if (rowBits & (1 << (3 - col))) //bitmask to check if the specific bit/cell is "ocupied"
+            { // if the cell has a block,
+                int gridX = baseX + col; // grab the (x,y) coords of the current cell
+                int gridY = baseY + row;
+                // permanently lock the block into the game grid by setting the color of the cells
+                gameGrid[gridY][gridX] = block->shapeType->color;
+            }
+        }
+    }
+}
+
+void spawnBlock(TetrisBlockPropertiesTypeDef *block, const BlockShape *shapeType)
+{
+
+    block->x = (GRID_WIDTH / 2 - block->cellsize) - block->cellsize; // setting start x coord
+    block->y = 48; // start y coord
+    block->cellsize = 24; // initialize cellsize to 24 (should be smaller for a real 10x20 tetris grid)
+    block->color = shapeType->color; // initialize block color
+    block->rotation = 0; // start at NO rotation
+    block->shapeType = shapeType;
+    drawBlock(block);
+}
+
+void rotateBlock(TetrisBlockPropertiesTypeDef *block)
+{
+    deleteBlock(block); // delete the previous shape off the screen
+    block->rotation = (block->rotation + 1) % 4; // new rotation will be: (0 + 1) % 4 = 1 (modulo so rotation never exceeds 3)
+    //if block is fully rotated 360 degrees, we would have (3 + 1) % 4 = 0 (back to original rotation)
+    drawBlock(block);
+}
+
+void moveBlockDown(TetrisBlockPropertiesTypeDef *block)
+{
+    deleteBlock(block);
+    block->y += block->cellsize;
+    drawBlock(block);
+}
+
+void moveBlockLeft(TetrisBlockPropertiesTypeDef *block)
+{
+    deleteBlock(block);
+    block->x -= block->cellsize;
+    drawBlock(block);
+}
+
+void moveBlockRight(TetrisBlockPropertiesTypeDef *block)
+{
+    deleteBlock(block);
+    block->x += block->cellsize;
+    drawBlock(block);
+}
+

@@ -16,7 +16,7 @@
 #define GRID_WIDTH 240
 
 
-
+//read only, declared here but defined in source file
 extern const BlockShape T;
 extern const BlockShape I;
 
@@ -31,7 +31,7 @@ typedef struct
 {
 	uint16_t block_color;
     uint16_t x, y;
-    cellsize;
+    int cellsize;
     int rotation;    // current rotation
     const BlockShape *shapeType;   // I, T, etc
 } TetrisBlockPropertiesTypeDef;
