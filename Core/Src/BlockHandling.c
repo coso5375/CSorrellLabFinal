@@ -367,11 +367,9 @@ RNG_HandleTypeDef hrng;
 void RNG_Init() // pretty sure theres a HAL function that does this for us? Cant find the proper one
 {
 	__HAL_RCC_RNG_CLK_ENABLE(); //enable RNG clock
-
 	hrng.Instance = RNG; // set instance
-	if (HAL_RNG_Init(&hrng) != HAL_OK)
+	if (HAL_RNG_Init(&hrng) != HAL_OK) //check if hal is OK
 	{
-		//check if hal is OK
 		while(1)
 		{
 			//eror handler
@@ -384,13 +382,11 @@ uint32_t GenerateRandomNum()
     uint32_t randomNumber;
     if (HAL_RNG_GenerateRandomNumber(&hrng, &randomNumber) != HAL_OK) // generate num & check if hal OK
     {
-
         while(1)
         {
         //Error handler
         }
     }
-
     return (randomNumber % 7) + 1; // return a random number 1 through 7
 }
 
