@@ -9,7 +9,7 @@
 
 /* Static variables */
 
-
+static bool firstPress = false;
 extern void initialise_monitor_handles(void); 
 
 #if COMPILE_TOUCH_FUNCTIONS == 1
@@ -41,9 +41,29 @@ void ApplicationInit(void)
 	#endif // TOUCH_INTERRUPT_ENABLED
 	#endif // COMPILE_TOUCH_FUNCTIONS
 
-	Game_Init();
+
 
 }
+void EXTI0_IRQHandler()
+{
+    EXTI_HandleTypeDef localStruct = {0};
+    localStruct.Line = EXTI_LINE_0;
+
+    // Temporarily disable the interrupt to prevent re-entry
+    HAL_NVIC_DisableIRQ(EXTI0_IRQn);
+
+    // Add the ROTATE_EVENT to the scheduler
+    addSchedulerEvent(ROTATE_EVENT);
+
+    // Clear pending interrupts
+    HAL_EXTI_ClearPending(&localStruct, EXTI_TRIGGER_RISING);
+    HAL_NVIC_ClearPendingIRQ(EXTI0_IRQn);
+
+    // Re-enable the interrupt
+    HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+}
+
+
 
 void LCD_Visual_Demo(void)
 {
@@ -102,11 +122,11 @@ void EXTI15_10_IRQHandler()
 	HAL_NVIC_DisableIRQ(EXTI15_10_IRQn); // May consider making this a universial interrupt guard
 	bool isTouchDetected = false;
 
-	static uint32_t count;
-	count = 0;
-	while(count == 0){
-		count = STMPE811_Read(STMPE811_FIFO_SIZE);
-	}
+	//static uint32_t count;
+//	count = 0;
+//	while(count == 0){
+//		count = STMPE811_Read(STMPE811_FIFO_SIZE);
+//	}
 
 	// Disable touch interrupt bit on the STMPE811
 	uint8_t currentIRQEnables = ReadRegisterFromTouchModule(STMPE811_INT_EN);
@@ -121,23 +141,41 @@ void EXTI15_10_IRQHandler()
 	if (ctrlReg & 0x80)
 	{
 		isTouchDetected = true;
+
 	}
 
 	// Determine if it is pressed or unpressed
 	if(isTouchDetected) // Touch has been detected
 	{
+
 		printf("\nPressed");
 		// May need to do numerous retries? 
 		DetermineTouchPosition(&StaticTouchData);
+		if (StaticTouchData.x > 120 && firstPress == 1) // if touch is right half of screen
+		{
+			addSchedulerEvent(MOVE_RIGHT_EVENT);
+		}
+		if(StaticTouchData.x <= 120 && firstPress)
+		{
+			addSchedulerEvent(MOVE_LEFT_EVENT); //left touch detected
+		}
+		if(firstPress == 0)
+		{
+			if(StaticTouchData.x >50 && StaticTouchData.x < 190 && StaticTouchData.y < 210 && StaticTouchData.y > 70 )
+			{
+				addSchedulerEvent(START_EVENT);
+				firstPress = true;
+			}
+		}
 		/* Touch valid */
-		printf("\nX: %03d\nY: %03d \n", StaticTouchData.x, StaticTouchData.y);
-		LCD_Clear(0, LCD_COLOR_RED);
+		//printf("\nX: %03d\nY: %03d \n", StaticTouchData.x, StaticTouchData.y);
+		//LCD_Clear(0, LCD_COLOR_RED);
 
 	}else{
 
 		/* Touch not pressed */
-		printf("\nNot pressed \n");
-		LCD_Clear(0, LCD_COLOR_GREEN);
+		//printf("\nNot pressed \n");
+		//LCD_Clear(0, LCD_COLOR_GREEN);
 	}
 
 	STMPE811_Write(STMPE811_FIFO_STA, 0x01);

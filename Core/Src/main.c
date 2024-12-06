@@ -36,6 +36,7 @@ int main(void)
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
+
   // The default system configuration function is "suspect" so we need to make our own clock configuration
   // Note - You, the developer, MAY have to play with some of this coniguration as you progress in your project
   SystemClockOverride();
@@ -43,21 +44,77 @@ int main(void)
   ApplicationInit(); // Initializes the LCD functionality
 
   //LCD_Visual_Demo();
+  Button_Init();
+  Initialize_Button_Interrupt();
+  RNG_Init();    //initialize RNG
+  Display_Start_Screen();
+  HAL_Delay(500);
 
-  //uint32_t eventsToRun;
-  HAL_Delay(5000);
+  while(1) //loop to wait until start button is pressed
+  {
+	  uint32_t eventsToRun = getScheduledEvents();
 
-
-  // DO NOT CALL THIS FUNCTION WHEN INTERRUPT MODE IS SELECTED IN THE COMPILE SWITCH IN stmpe811.h
-  // Un-comment the below function after setting COMPILE_TOUCH to 1 in stmpe811.h
-  //LCD_Touch_Polling_Demo(); // This function Will not return
+	  if(eventsToRun & START_EVENT)
+	  {
+		  Game_Init(); //start the game if pressed
+		  removeSchedulerEvents(START_EVENT);
+		  break; // exit loop so that we go into main loop
+	  }
+  }
+  uint32_t lastGameTick = HAL_GetTick(); //used to track every 3 secs
 
   while (1)
   {
+	  uint32_t currentTime = HAL_GetTick();
 
+
+	  if ((currentTime - lastGameTick) >= 1000) //constantly checking for 3 seconds elasped
+	  {
+		  addSchedulerEvent(GAME_TICK_EVENT); //if itsw been 3 seconds, schedule game event
+		  lastGameTick = currentTime;    //update tick
+	  }
+
+	  uint32_t eventsToRun = getScheduledEvents();
+
+	  if (eventsToRun & GAME_TICK_EVENT)
+	  {
+		  Gameplay();
+		  removeSchedulerEvents(GAME_TICK_EVENT);
+	  }
+
+	  if (eventsToRun & ROTATE_EVENT)
+	  {
+		  RotateEvent();
+		  removeSchedulerEvents(ROTATE_EVENT);
+	  }
+
+	  if (eventsToRun & MOVE_LEFT_EVENT)
+	  {
+		  MoveLeftEvent();
+		  removeSchedulerEvents(MOVE_LEFT_EVENT);
+	  }
+
+	  if (eventsToRun & MOVE_RIGHT_EVENT)
+	  {
+		  MoveRightEvent();
+		  removeSchedulerEvents(MOVE_RIGHT_EVENT);
+	  }
+	  if (eventsToRun & BUTTON_HOLD_EVENT)
+	  {
+	      removeSchedulerEvents(BUTTON_HOLD_EVENT);
+	      MoveBlockDownEvent();
+
+	  }
+
+	  if (Check_Game_Over()==true)
+	  {
+		  Display_End_Screen();
+		  break;
+	  }
   }
-
 }
+
+
 
 /**
   * @brief System Clock Configuration

@@ -51,7 +51,7 @@ void Initialize_Button_Interrupt()
 {
 	GPIO_InitTypeDef localStruct = {0};
 	localStruct.Pin = GPIO_PIN_0;
-	localStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+	localStruct.Mode = GPIO_MODE_IT_RISING;
 	localStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
 	localStruct.Pull = GPIO_NOPULL;
 	Clock_Init();

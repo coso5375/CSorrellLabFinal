@@ -307,6 +307,17 @@ void LCD_DisplayChar(uint16_t Xpos, uint16_t Ypos, uint8_t Ascii)
   LCD_Draw_Char(Xpos, Ypos, &LCD_Currentfonts->table[Ascii * LCD_Currentfonts->Height]);
 }
 
+void LCD_DisplayString(uint16_t Xpos, uint16_t Ypos, const char *str)
+{
+    int i = 0; // starting @ first char of the string
+    while (str[i] != '\0') //loops through until end of string (when it finds "\0")
+    {
+        LCD_DisplayChar(Xpos, Ypos, str[i]); //display char
+        Xpos += LCD_Currentfonts->Width;    //move x over
+        i++;
+    }
+}
+
 void visualDemo(void)
 {
 	uint16_t x;

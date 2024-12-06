@@ -32,6 +32,7 @@
 #define LCD_COLOR_GREEN         0x07E0
 #define LCD_COLOR_CYAN          0x7FFF
 #define LCD_COLOR_YELLOW        0xFFE0
+#define LCD_COLOR_ORANGE 		0xFC00
 
 /* Timing configuration from datahseet
   HSYNC=10 (9+1)
@@ -61,7 +62,7 @@ void LCD_DrawChar(uint16_t Xpos, uint16_t Ypos, const uint16_t *c);
 void LCD_DisplayChar(uint16_t Xpos, uint16_t Ypos, uint8_t Ascii);
 void LCD_SetTextColor(uint16_t Color);
 void LCD_SetFont(FONT_t *fonts);
-
+void LCD_DisplayString(uint16_t Xpos, uint16_t Ypos, const char *str);
 // Draw Circle Filled
 void LCD_Draw_Circle_Fill(uint16_t Xpos, uint16_t Ypos, uint16_t radius, uint16_t color);
 void LCD_Draw_Square_Fill(uint16_t Xpos, uint16_t Ypos, uint16_t sideLength, uint16_t color);

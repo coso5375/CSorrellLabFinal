@@ -10,25 +10,18 @@
 
 #include "BlockHandling.h"
 
-
-#define NONE 0 // Macros for moving block
-#define LEFT -1
-#define UP -1
-#define DOWN 1
-#define RIGHT 1
-
 void Game_Init();
-void Start_Screen();
+void Display_Start_Screen();
 void Draw_Tetris_Grid();
+bool Check_Game_Over();
+void Display_End_Screen();
 void Game_Loop();
-
-
-
-
-
-
-
-
+void Gameplay();
+void RotateEvent();
+void MoveLeftEvent();
+void MoveRightEvent();
+void MoveBlockDownEvent();
+uint8_t clearTetrisRows(uint16_t gameGrid[GRID_HEIGHT / 24][GRID_WIDTH / 24]);
 
 
 
