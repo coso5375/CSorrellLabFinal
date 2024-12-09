@@ -6,12 +6,12 @@
  */
 #include <BlockHandling.h>
 
-const BlockShape T = { 		// T block
+const BlockShape T = {
     .shape_rotations = {
         0b0000010011100000, // default rotation
         0b0000010001100100, // 90-degree rotation
         0b0000000011100100, // 180-degree rotation
-        0b0000001001100010  // 270-degree rotation
+        0b0000001001100010  //270-degree rotation
     },
 	.color = LCD_COLOR_MAGENTA
 };
@@ -80,7 +80,6 @@ void rotateBlock(TetrisBlockPropertiesTypeDef *block)
 {
     deleteBlock(block); // delete the previous shape off the screen
     block->rotation = (block->rotation + 1) % 4; // new rotation will be: (0 + 1) % 4 = 1 (modulo so rotation never exceeds 3)
-    //if block is fully rotated 360 degrees, we would have (3 + 1) % 4 = 0 (back to original rotation)
     drawBlock(block);
 }
 
@@ -112,8 +111,7 @@ void drawBlock(const TetrisBlockPropertiesTypeDef *block)
 
     for (int row = 0; row < 4; row++) //loop through the shapes 4x4 grid
     {
-        uint8_t rowBits = getRowBits(shapeData, row);
-        //shift the row (4 bits) to the least significant 4 bits, then mask with 0xF to isolate the 4 bits.
+        uint8_t rowBits = getRowBits(shapeData, row); //shift the row (4 bits) to the least significant 4 bits, then mask with 0xF to isolate the 4 bits.
         //rowBits will hold the 4 bits of the current row
         for (int col = 0; col < 4; col++) //iterate through the 4 columns of the current row
         {
@@ -179,7 +177,7 @@ void lockBlock(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGrid[GRID
 
 void spawnBlock(TetrisBlockPropertiesTypeDef *block, uint32_t blockType)
 {
-    const BlockShape* shapeType[] = {&T, &I, &L, &J, &O, &S, &Z};
+    const BlockShape* shapeType[] = {&T, &I, &L, &J, &O, &S, &Z}; // array for all 7 blocks so that random num gen can provide an int 1-7
 	block->cellsize = 24; // initialize cellsize to 24 (should be smaller for a real 10x20 tetris grid)
     block->x = (GRID_WIDTH / 2) - (block->cellsize); // setting start x coord
     block->y = 0; // start y coord

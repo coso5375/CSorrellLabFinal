@@ -99,11 +99,11 @@ int main(void)
 		  MoveRightEvent();
 		  removeSchedulerEvents(MOVE_RIGHT_EVENT);
 	  }
-	  if (eventsToRun & BUTTON_HOLD_EVENT)
+
+	  if (eventsToRun & BUTTON_HOLD_EVENT) // cant get this working. would be cool though
 	  {
 	      removeSchedulerEvents(BUTTON_HOLD_EVENT);
 	      MoveBlockDownEvent();
-
 	  }
 
 	  if (Check_Game_Over()==true)
@@ -111,7 +111,7 @@ int main(void)
 		  Display_End_Screen();
 		  break;
 	  }
-  }
+   }
 }
 
 

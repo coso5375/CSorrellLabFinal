@@ -34,34 +34,34 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := CSorrellFinal
+BUILD_ARTIFACT_NAME := CSorrellLabFinal
 BUILD_ARTIFACT_EXTENSION := elf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-CSorrellFinal.elf \
+CSorrellLabFinal.elf \
 
 MAP_FILES += \
-CSorrellFinal.map \
+CSorrellLabFinal.map \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-CSorrellFinal.list \
+CSorrellLabFinal.list \
 
 
 # All Target
 all: main-build
 
 # Main-build Target
-main-build: CSorrellFinal.elf secondary-outputs
+main-build: CSorrellLabFinal.elf secondary-outputs
 
 # Tool invocations
-CSorrellFinal.elf CSorrellFinal.map: $(OBJS) $(USER_OBJS) /Users/connorsorrell/STM32CubeIDE/workspace_1.16.0/CSorrellFinal/STM32F429ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "CSorrellFinal.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/connorsorrell/STM32CubeIDE/workspace_1.16.0/CSorrellFinal/STM32F429ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="CSorrellFinal.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+CSorrellLabFinal.elf CSorrellLabFinal.map: $(OBJS) $(USER_OBJS) /Users/connorsorrell/STM32CubeIDE/workspace_1.16.0/CSorrellLabFinal/STM32F429ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "CSorrellLabFinal.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/connorsorrell/STM32CubeIDE/workspace_1.16.0/CSorrellLabFinal/STM32F429ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="CSorrellLabFinal.map" -Wl,--gc-sections -static -specs=rdimon.specs --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -70,14 +70,14 @@ default.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-CSorrellFinal.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "CSorrellFinal.list"
+CSorrellLabFinal.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "CSorrellLabFinal.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) CSorrellFinal.elf CSorrellFinal.list CSorrellFinal.map default.size.stdout
+	-$(RM) CSorrellLabFinal.elf CSorrellLabFinal.list CSorrellLabFinal.map default.size.stdout
 	-@echo ' '
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)

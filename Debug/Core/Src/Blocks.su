@@ -1,0 +1,9 @@
+../Core/Src/Blocks.c:34:6:drawBlock	40	static
+../Core/Src/Blocks.c:51:6:deleteBlock	40	static
+../Core/Src/Blocks.c:71:6:rotateBlock	16	static
+../Core/Src/Blocks.c:77:6:moveBlockDown	16	static
+../Core/Src/Blocks.c:83:6:moveBlockLeft	16	static
+../Core/Src/Blocks.c:89:6:moveBlockRight	16	static
+../Core/Src/Blocks.c:95:6:detectCollision	56	static
+../Core/Src/Blocks.c:131:6:lockBlock	48	static
+../Core/Src/Blocks.c:161:6:spawnBlock	16	static

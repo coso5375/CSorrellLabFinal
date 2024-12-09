@@ -9,19 +9,18 @@
 
 static TetrisBlockPropertiesTypeDef activeBlock;
 static uint16_t gameGrid[GRID_HEIGHT / 24][GRID_WIDTH / 24] = {0}; // Game grid (10x13 for 240x320 grid)
-
 static uint32_t firstGameTick;  //starting time; helps find elasped time at end
-static uint8_t singleClears;
-static uint8_t doubleClears;
-static uint8_t tetrisClears;   // # of tetris clears (4 rows)
+static uint8_t singles; // game stats / clears
+static uint8_t doubles;
+static uint8_t tetris;   // # of tetris clears (4 rows)
 static uint32_t elapsedTime;
 
 void Game_Init()
 {
     firstGameTick = HAL_GetTick(); // used to get elasped time
-    singleClears = 0;
-    doubleClears = 0;
-    tetrisClears = 0;
+    singles = 0;
+    doubles = 0;
+    tetris = 0;
     elapsedTime = 0;
     LCD_Clear(0, LCD_COLOR_BLACK);
     Draw_Tetris_Grid();
@@ -50,17 +49,17 @@ void Display_Start_Screen()
 void Draw_Tetris_Grid()
 {
 	// draw the vertical grid lines
-	for (int x = 0; x <= GRID_WIDTH; x += 24) //can eventually take the block as input argument,
+	for (int pixel_x = 0; pixel_x <= GRID_WIDTH; pixel_x += 24) //can eventually take the block as input argument,
 		// so that block->cellsize can be the size of the grid
 	{
-		LCD_Draw_Vertical_Line(x, 0, GRID_HEIGHT-7, LCD_COLOR_WHITE); // need to perfect this so the -7 is not needed
+		LCD_Draw_Vertical_Line(pixel_x, 0, GRID_HEIGHT-7, LCD_COLOR_WHITE); // need to perfect this so the -7 is not needed
 	}
 	LCD_Draw_Vertical_Line(GRID_WIDTH - 1, 0, GRID_HEIGHT-7, LCD_COLOR_WHITE); // for the right edge of screen
 
 	// draw the horizontl grid lines
-	for (int y = 0; y <= GRID_HEIGHT; y += 24)
+	for (int pixel_y = 0; pixel_y <= GRID_HEIGHT; pixel_y += 24)
 	{
-		LCD_Draw_Horizontal_Line(0, y, GRID_WIDTH, LCD_COLOR_WHITE);
+		LCD_Draw_Horizontal_Line(0, pixel_y, GRID_WIDTH, LCD_COLOR_WHITE);
 	}
 }
 
@@ -74,19 +73,17 @@ void Gameplay()
     {
         lockBlock(&activeBlock, gameGrid);
         uint8_t clearedRows = clearTetrisRows(gameGrid);
-        switch (clearedRows) // update game stats
+        if(clearedRows == 1) // updating game stats
         {
-        case 1:
-        	singleClears++;
-        	break;
-        case 2:
-        	doubleClears++;
-        	break;
-        case 4:
-        	tetrisClears++;
-        	break;
-        default:
-        	break;
+        	singles++;
+        }
+        if(clearedRows == 2)
+        {
+        	doubles++;
+        }
+        if(clearedRows == 4)
+        {
+        	tetris++;
         }
     spawnBlock(&activeBlock, GenerateRandomNum());
     }
@@ -135,7 +132,7 @@ void MoveBlockDownEvent()
 bool Check_Game_Over()
 {
     for (int col = 0; col < GRID_WIDTH / 24; col++) //goes thru each column in 2nd to top row of grid,
-    	//if any top row cell has a block, game is over
+    	//if any cell has a block, games over
     {
         if (gameGrid[2][col] != 0)
         {
@@ -175,31 +172,29 @@ void Display_End_Screen()
     LCD_SetFont(&Font12x12);
     LCD_SetTextColor(LCD_COLOR_RED);
 
-	// "Single Clears:"
+
 	x = 10; y += 50;
 	LCD_DisplayString(x, y, "Single Clears:");
 	x = 175;
-	LCD_DisplayChar(x, y, (singleClears / 10) + '0');
+	LCD_DisplayChar(x, y, (singles / 10) + '0'); // tens
 	x += Font12x12.Width;
-	LCD_DisplayChar(x, y, (singleClears % 10) + '0');
+	LCD_DisplayChar(x, y, (singles % 10) + '0'); //ones
 
-	// "Double Clears:"
     LCD_SetTextColor(LCD_COLOR_BLUE);
 	x = 10; y += 30;
 	LCD_DisplayString(x, y, "Double Clears:");
 	x = 175;
-	LCD_DisplayChar(x, y, (doubleClears / 10) + '0');
+	LCD_DisplayChar(x, y, (doubles / 10) + '0');
 	x += Font12x12.Width;
-	LCD_DisplayChar(x, y, (doubleClears % 10) + '0');
+	LCD_DisplayChar(x, y, (doubles % 10) + '0');
 
-	// "Tetris Clears:"
     LCD_SetTextColor(LCD_COLOR_ORANGE);
 	x = 10; y += 30;
 	LCD_DisplayString(x, y, "Tetris Clears:");
 	x = 175;
-	LCD_DisplayChar(x, y, (tetrisClears / 10) + '0');
+	LCD_DisplayChar(x, y, (tetris / 10) + '0');
 	x += Font12x12.Width;
-	LCD_DisplayChar(x, y, (tetrisClears % 10) + '0');
+	LCD_DisplayChar(x, y, (tetris % 10) + '0');
 
 	DisplayBlocks();
 }
@@ -208,9 +203,9 @@ void Display_End_Screen()
 uint8_t clearTetrisRows(uint16_t gameGrid[GRID_HEIGHT / 24][GRID_WIDTH / 24])
 {
     uint8_t linesCleared = 0;
+    bool fullRow;
     for (int row = 12; row >= 0; row--) //starting at bottom row, traverse upwards
     {
-        bool fullRow = true;
         for (int col = 0; col < 10; col++) // check if row is completely full
         {
             if (gameGrid[row][col] == 0) //if any cell is empty, row isn't complete
@@ -225,37 +220,34 @@ uint8_t clearTetrisRows(uint16_t gameGrid[GRID_HEIGHT / 24][GRID_WIDTH / 24])
             for (int col = 0; col < 10; col++) // loop thru and set each cell to 0 to clear it
             {
                 gameGrid[row][col] = 0;
-
-                int x = col * 24; // get cell coords
-                int y = row * 24;
-                LCD_Draw_Square_Fill(x + 12, y + 12, 24, LCD_COLOR_BLACK); //set to black
+                int pixel_x = col * 24; // get cells pixel coords for lcd drawing
+                int pixel_y = row * 24;
+                LCD_Draw_Square_Fill(pixel_x + 12, pixel_y + 12, 24, LCD_COLOR_BLACK); //set to black
             }
-            for (int r = row; r > 0; r--) // move every row down 1 row
+            for (int i = row; i > 0; i--) // move every row down 1 row (i = row traverse, starting @ current row)
             {
                 for (int col = 0; col < 10; col++)
                 {
-                    gameGrid[r][col] = gameGrid[r - 1][col]; //move the row down
-
-                    int x = col * 24; // get coords
-                    int y = r * 24;
-
-                    if (gameGrid[r][col] != 0) // if the cell has a block
+                    gameGrid[i][col] = gameGrid[i - 1][col]; //copy the rows color/block data down
+                    int pixel_x = col * 24;
+                    int pixel_y = i * 24;
+                    if (gameGrid[i][col] != 0) // if the cell has a block
                     {
-                        LCD_Draw_Square_Fill(x + 12, y + 12, 24, gameGrid[r][col]); // redraw with the old block color
+                        LCD_Draw_Square_Fill(pixel_x + 12, pixel_y + 12, 24, gameGrid[i][col]);//redraw new row with the old block colors
                     }
                     else
                     {
-                        LCD_Draw_Square_Fill(x + 12, y + 12, 24, LCD_COLOR_BLACK); // set to black to clear
+                        LCD_Draw_Square_Fill(pixel_x + 12, pixel_y + 12, 24, LCD_COLOR_BLACK); //set to black to clear
                     }
                 }
             }
             for (int col = 0; col < 10; col++) // clear new top row
             {
                 gameGrid[0][col] = 0;
-                int x = col * 24;
-                LCD_Draw_Square_Fill(x + 12, 12, 24, LCD_COLOR_BLACK); // set top row to black
+                int pixel_x = col * 24;
+                LCD_Draw_Square_Fill(pixel_x + 12, 12, 24, LCD_COLOR_BLACK); // set top row to black
             }
-            row++; // recheck row after shift
+            row++; //recheck row after shift
         }
         Draw_Tetris_Grid(); // redraw grid
     }
