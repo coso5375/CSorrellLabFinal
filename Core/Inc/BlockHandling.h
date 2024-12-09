@@ -38,7 +38,6 @@ typedef struct
 } TetrisBlockPropertiesTypeDef;
 
 //with a few edits, gamegrid is modular and cells can be bigger/smaller, hence gameGrids intiliatizion
-
 void drawBlock(const TetrisBlockPropertiesTypeDef *block);
 void deleteBlock(const TetrisBlockPropertiesTypeDef *block);
 void rotateBlock(TetrisBlockPropertiesTypeDef *block);

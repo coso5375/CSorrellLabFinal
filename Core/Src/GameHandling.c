@@ -4,30 +4,19 @@
  *  Created on: Nov 27, 2024
  *      Author: connorsorrell
  */
-
 #include "GameHandling.h"
 
 static TetrisBlockPropertiesTypeDef activeBlock;
 static uint16_t gameGrid[GRID_HEIGHT / 24][GRID_WIDTH / 24] = {0}; // Game grid (10x13 for 240x320 grid)
+
 static uint32_t firstGameTick;  //starting time; helps find elasped time at end
 static uint8_t singles; // game stats / clears
 static uint8_t doubles;
 static uint8_t tetris;   // # of tetris clears (4 rows)
 static uint32_t elapsedTime;
 
-void Game_Init()
-{
-    firstGameTick = HAL_GetTick(); // used to get elasped time
-    singles = 0;
-    doubles = 0;
-    tetris = 0;
-    elapsedTime = 0;
-    LCD_Clear(0, LCD_COLOR_BLACK);
-    Draw_Tetris_Grid();
-    spawnBlock(&activeBlock, GenerateRandomNum());
-}
 
-void Display_Start_Screen()
+void Display_Start_Screen() // Clears the screen, displays start msg and button
 {
     //clear screen to white and then display "Start" msg
     LCD_Clear(0, LCD_COLOR_WHITE);
@@ -43,10 +32,21 @@ void Display_Start_Screen()
 	x=80;
 	y=140;
 	LCD_DisplayString(x, y, "Start");
-
 }
 
-void Draw_Tetris_Grid()
+void Game_Init() // Initializes game stats to 0, clears screen, draws tetris grid & spawns 1st block
+{
+    firstGameTick = HAL_GetTick(); // used to get elasped time
+    singles = 0;
+    doubles = 0;
+    tetris = 0;
+    elapsedTime = 0;
+    LCD_Clear(0, LCD_COLOR_BLACK);
+    Draw_Tetris_Grid();
+    spawnBlock(&activeBlock, GenerateRandomNum());
+}
+
+void Draw_Tetris_Grid() // Draws tetris grid lines (for 24x24 cells)
 {
 	// draw the vertical grid lines
 	for (int pixel_x = 0; pixel_x <= GRID_WIDTH; pixel_x += 24) //can eventually take the block as input argument,
@@ -63,7 +63,8 @@ void Draw_Tetris_Grid()
 	}
 }
 
-void Gameplay()
+void Gameplay() // Handles the game tick scheduled event. Moves block down every 3 seconds when theres no collision, checks for full rows
+//If collision is met, locks block in place and spawns a new one
 {
     if (!detectCollision(&activeBlock, gameGrid, NONE, DOWN))
     {
@@ -89,7 +90,7 @@ void Gameplay()
     }
 }
 
-void RotateEvent()
+void RotateEvent() // Check if rotation is possible. If so, rotate
 {
 	if (canRotate(&activeBlock, gameGrid))
 	{
@@ -118,7 +119,7 @@ void MoveRightEvent()
     }
 }
 
-void MoveBlockDownEvent()
+void MoveBlockDownEvent() // Moves block all the way to bottom of the grid
 {
 	 while (!detectCollision(&activeBlock, gameGrid, NONE, DOWN))
 	 {
@@ -129,10 +130,9 @@ void MoveBlockDownEvent()
 	 spawnBlock(&activeBlock, GenerateRandomNum());
 }
 
-bool Check_Game_Over()
+bool Check_Game_Over() // Goes through the 2nd to top row. If any cell has a block, game is over
 {
-    for (int col = 0; col < GRID_WIDTH / 24; col++) //goes thru each column in 2nd to top row of grid,
-    	//if any cell has a block, games over
+    for (int col = 0; col < GRID_WIDTH / 24; col++)
     {
         if (gameGrid[2][col] != 0)
         {
@@ -142,7 +142,7 @@ bool Check_Game_Over()
     return false;
 }
 
-void Display_End_Screen()
+void Display_End_Screen() // Display stats, elapsed time
 {
     elapsedTime = (HAL_GetTick() - firstGameTick) / 1000; //convert to seconds
     LCD_Clear(0, LCD_COLOR_BLACK);
@@ -170,9 +170,8 @@ void Display_End_Screen()
     LCD_DisplayChar(x, y, (seconds % 10) + '0'); // display the ones place seconds
 
     LCD_SetFont(&Font12x12);
+
     LCD_SetTextColor(LCD_COLOR_RED);
-
-
 	x = 10; y += 50;
 	LCD_DisplayString(x, y, "Single Clears:");
 	x = 175;
@@ -200,7 +199,7 @@ void Display_End_Screen()
 }
 
 
-uint8_t clearTetrisRows(uint16_t gameGrid[GRID_HEIGHT / 24][GRID_WIDTH / 24])
+uint8_t clearTetrisRows(uint16_t gameGrid[GRID_HEIGHT / 24][GRID_WIDTH / 24]) // Checks for full rows. If one is found, clear it and shift every row above it down 1.
 {
     uint8_t linesCleared = 0;
     bool fullRow;
