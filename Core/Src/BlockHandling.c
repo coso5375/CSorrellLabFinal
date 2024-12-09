@@ -75,6 +75,7 @@ const BlockShape Z = {
     },
     .color = LCD_COLOR_RED
 };
+//TMRW combine these into moveblock function
 
 void rotateBlock(TetrisBlockPropertiesTypeDef *block)
 {
@@ -195,7 +196,6 @@ bool detectCollision(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGri
     for (int row = 0; row < 4; row++)
     {
         uint8_t rowBits = getRowBits(shapeData, row);
-
         for (int col = 0; col < 4; col++)
         {
             if (isCellInShape(rowBits, col) == true)  // IF cell is apart of our block shape
@@ -232,7 +232,6 @@ bool canRotate(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGrid[GRID
     for (int row = 0; row < 4; row++)  //iterate through the rotated blocks 4x4 block shape
     {
         uint8_t rowBits = getRowBits(rotatedShapeData, row);
-
         for (int col = 0; col < 4; col++)
         {
             if (isCellInShape(rowBits, col) == true)  // check each bit, if we have a shape there, we need to fill in that dell
@@ -264,7 +263,6 @@ void drawBlockBlackOutline(const TetrisBlockPropertiesTypeDef *block) // just us
 {
     uint16_t shapeData = block->shapeType->shape_rotations[block->rotation % 4]; // get the 16bit shape for the block depending on rotation
     uint16_t blockColor = block->shapeType->color; // grab the shapes color
-
     for (int row = 0; row < 4; row++) //loop through the shapes 4x4 grid
     {
         uint8_t rowBits = getRowBits(shapeData, row);
@@ -358,6 +356,27 @@ bool isCellInShape(uint8_t rowBits, int col)
     	return false;
     }
 }
+
+void moveBlock(int MOVE, TetrisBlockPropertiesTypeDef *block)
+{
+	if(MOVE==MOVE_LEFT)
+	{
+		//move left logic
+	}
+	if(MOVE==MOVE_RIGHT)
+	{
+
+	}
+	if(MOVE==MOVE_DOWN)
+	{
+
+	}
+	if(MOVE==ROTATE)
+	{
+
+	}
+}
+
 
 //RNG FUNCTIONS
 RNG_HandleTypeDef hrng;

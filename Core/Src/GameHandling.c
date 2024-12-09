@@ -18,15 +18,13 @@ static uint32_t elapsedTime;
 
 void Display_Start_Screen() // Clears the screen, displays start msg and button
 {
-    //clear screen to white and then display "Start" msg
     LCD_Clear(0, LCD_COLOR_WHITE);
     LCD_SetTextColor(LCD_COLOR_BLACK);
     LCD_SetFont(&Font16x24);
     LCD_Draw_Square_Fill(120, 140, 144, LCD_COLOR_BLACK); // black outline
     LCD_Draw_Square_Fill(120, 140, 140, LCD_COLOR_RED); //box in middle of screen
     //DisplayBlocks(); //THIS BREAKS THE CODE???? NO IDEA WHY
-    //message in middle of screen
-    int x = 58;
+    int x = 58; //message in middle of screen
 	int y = 110;
 	LCD_DisplayString(x, y, "Press To");
 	x=80;
@@ -49,17 +47,15 @@ void Game_Init() // Initializes game stats to 0, clears screen, draws tetris gri
 void Draw_Tetris_Grid() // Draws tetris grid lines (for 24x24 cells)
 {
 	// draw the vertical grid lines
-	for (int pixel_x = 0; pixel_x <= GRID_WIDTH; pixel_x += 24) //can eventually take the block as input argument,
-		// so that block->cellsize can be the size of the grid
+	for (int pixel_x = 0; pixel_x <= GRID_WIDTH; pixel_x += 24) //can eventually take the block as input argument so that block->cellsize can be the size of the grid
 	{
-		LCD_Draw_Vertical_Line(pixel_x, 0, GRID_HEIGHT-7, LCD_COLOR_WHITE); // need to perfect this so the -7 is not needed
+		LCD_Draw_Vertical_Line(pixel_x, 0, GRID_HEIGHT-7, LCD_COLOR_WHITE); // -7 bc grid does not take entire height of LCD
 	}
 	LCD_Draw_Vertical_Line(GRID_WIDTH - 1, 0, GRID_HEIGHT-7, LCD_COLOR_WHITE); // for the right edge of screen
 
-	// draw the horizontl grid lines
 	for (int pixel_y = 0; pixel_y <= GRID_HEIGHT; pixel_y += 24)
 	{
-		LCD_Draw_Horizontal_Line(0, pixel_y, GRID_WIDTH, LCD_COLOR_WHITE);
+		LCD_Draw_Horizontal_Line(0, pixel_y, GRID_WIDTH, LCD_COLOR_WHITE); // draw the horizontl grid lines
 	}
 }
 
@@ -102,7 +98,7 @@ void RotateEvent() // Check if rotation is possible. If so, rotate
 		//maybe put a debug statement here?
 	}
 }
-
+//TMRW combine these into moveblock function
 void MoveLeftEvent()
 {
     if (!detectCollision(&activeBlock, gameGrid, LEFT, NONE))
