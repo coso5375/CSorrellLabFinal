@@ -68,7 +68,7 @@ int main(void)
 	  uint32_t currentTime = HAL_GetTick();
 
 
-	  if ((currentTime - lastGameTick) >= 1000) //constantly checking for 3 seconds elasped
+	  if ((currentTime - lastGameTick) >= 1000) //constantly checking for 3 seconds elasped (not 3 seconds right now change before submit)
 	  {
 		  addSchedulerEvent(GAME_TICK_EVENT); //if itsw been 3 seconds, schedule game event
 		  lastGameTick = currentTime;    //update tick

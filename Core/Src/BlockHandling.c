@@ -6,7 +6,7 @@
  */
 #include <BlockHandling.h>
 
-const BlockShape T = {
+const BlockShape T = { // constant instances of blockshape struct
     .shape_rotations = {
         0b0000010011100000, // default rotation
         0b0000010001100100, // 90-degree rotation
@@ -118,10 +118,8 @@ void drawBlock(const TetrisBlockPropertiesTypeDef *block)
         {
             if (isCellInShape(rowBits, col) == true)  // IF cell is apart of our block shape
             {
-                int pixel_x = block->x + col * block->cellsize; //get pixel coordinates of the cell
-                int pixel_y = block->y + row * block->cellsize;
-                LCD_Draw_Square_Fill(pixel_x + block->cellsize / 2, pixel_y + block->cellsize / 2, block->cellsize, LCD_COLOR_WHITE);
-				LCD_Draw_Square_Fill(pixel_x + block->cellsize / 2, pixel_y + block->cellsize / 2, block->cellsize - 2, blockColor);
+            	drawShape(block, row, col, blockColor, LCD_COLOR_WHITE);
+
             }
         }
     }
@@ -138,15 +136,7 @@ void deleteBlock(const TetrisBlockPropertiesTypeDef *block)
         {
             if (isCellInShape(rowBits, col) == true)  // IF cell is apart of our block shape
             {
-                int pixel_x = block->x + col * block->cellsize; // calculate pixel coordinates
-                int pixel_y = block->y + row * block->cellsize;
-
-                LCD_Draw_Square_Fill(pixel_x + block->cellsize / 2, pixel_y + block->cellsize / 2, block->cellsize, LCD_COLOR_BLACK);
-                //draw black square to "erase"
-                LCD_Draw_Horizontal_Line(pixel_x, pixel_y, block->cellsize, LCD_COLOR_WHITE); // redraw the white gridlines
-                LCD_Draw_Horizontal_Line(pixel_x, pixel_y + block->cellsize, block->cellsize, LCD_COLOR_WHITE);
-                LCD_Draw_Vertical_Line(pixel_x, pixel_y, block->cellsize, LCD_COLOR_WHITE);
-                LCD_Draw_Vertical_Line(pixel_x + block->cellsize, pixel_y, block->cellsize, LCD_COLOR_WHITE);
+            	drawShape(block, row, col, LCD_COLOR_BLACK, LCD_COLOR_WHITE);
             	LCD_Draw_Vertical_Line(GRID_WIDTH - 1, 0, GRID_HEIGHT-7, LCD_COLOR_WHITE); // for the right edge of screen
             }
         }
@@ -167,10 +157,8 @@ void lockBlock(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGrid[GRID
         {
             if (isCellInShape(rowBits, col) == true)  // IF cell is apart of our block shape
             {
-                int GridCellX = blockTopLeftX + col; // grab the (x,y) coords of the current cell
-                int GridCellY = blockTopLeftY + row;
-                // permanently lock the block into the game grid by setting the color of the cells
-                gameGrid[GridCellY][GridCellX] = block->shapeType->color;
+                // permanently lock the block into the game grid by setting the color of the cells (x,y coords)
+                gameGrid[blockTopLeftY + row][blockTopLeftX + col] = block->shapeType->color;
             }
         }
     }
@@ -227,20 +215,17 @@ bool detectCollision(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGri
 			{
 				if (isCellInShape(rowBits, col) == true)  // check each bit, if we have a shape there, we need to fill in that dell
 				{
-					int GridCellX = blockTopLeftX + col; // grabbing block cells x,y coords
-					int GridCellY = blockTopLeftY + row;
-
 					//checking allowed boundaries
-					if (GridCellX < 0 || GridCellX >= (GRID_WIDTH / block->cellsize))
+					if (blockTopLeftX + col < 0 || blockTopLeftX + col >= (GRID_WIDTH / block->cellsize)) // make sure x,y coords inside boundaries
 					{
 						return true; //collision so block cannot rotqte
 					}
-					if (GridCellY < 0 || GridCellY >= (GRID_HEIGHT / block->cellsize))
+					if (blockTopLeftY + row < 0 || blockTopLeftY + row >= (GRID_HEIGHT / block->cellsize))
 					{
 						return true;
 					}
 					//checking for collisions with other blocks already placed
-					if (gameGrid[GridCellY][GridCellX] != 0)
+					if (gameGrid[blockTopLeftY + row][blockTopLeftX + col] != 0)
 					{
 						return true;
 					}
@@ -260,18 +245,15 @@ bool detectCollision(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGri
         {
             if (isCellInShape(rowBits, col) == true)  // IF cell is apart of our block shape
             {
-                int GridCellX = blockTopLeftX + col; // get the current x,y cell position
-                int GridCellY = blockTopLeftY + row;
-
-                if (MOVE_X != NONE && (GridCellX < 0 || GridCellX >= (GRID_WIDTH / block->cellsize)))
+                if (MOVE_X != NONE && (blockTopLeftX + col < 0 || blockTopLeftX + col >= (GRID_WIDTH / block->cellsize)))
                 {
                     return true; // collision with edge of grid, cant move left/right
                 }
-                if (MOVE_Y != NONE && GridCellY >= (GRID_HEIGHT / block->cellsize))
+                if (MOVE_Y != NONE && blockTopLeftY + row >= (GRID_HEIGHT / block->cellsize))
                 {
                     return true; // collision with bottom of grid, cant move down
                 }
-                if (gameGrid[GridCellY][GridCellX] != 0)
+                if (gameGrid[blockTopLeftY + row][blockTopLeftX + col] != 0)
                 {
                     return true; // we have a collision with an existing block
                 }
@@ -280,7 +262,6 @@ bool detectCollision(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGri
     }
     return false; //NO collisions
 }
-
 
 void drawBlockBlackOutline(const TetrisBlockPropertiesTypeDef *block) // just used for displayBlocks()
 {
@@ -295,18 +276,18 @@ void drawBlockBlackOutline(const TetrisBlockPropertiesTypeDef *block) // just us
         {
             if (isCellInShape(rowBits, col) == true)  // check each bit, if we have a shape there, we need to fill in that dell
             {
-                int pixel_x = block->x + col * block->cellsize; //get pixel coordinates of the cell
-                int pixel_y = block->y + row * block->cellsize;
-
-                LCD_Draw_Square_Fill(pixel_x + block->cellsize / 2, pixel_y + block->cellsize / 2, block->cellsize, LCD_COLOR_BLACK);
-				// draw color slightly smaller to leave the border
-				LCD_Draw_Square_Fill(pixel_x + block->cellsize / 2, pixel_y + block->cellsize / 2, block->cellsize - 2, blockColor);
+            	drawShape(block, row, col, blockColor, LCD_COLOR_BLACK);
+//                int pixel_y = block->y + row * block->cellsize;
+//
+//                LCD_Draw_Square_Fill(pixel_x + block->cellsize / 2, pixel_y + block->cellsize / 2, block->cellsize, LCD_COLOR_BLACK);
+//				// draw color slightly smaller to leave the border
+//				LCD_Draw_Square_Fill(pixel_x + block->cellsize / 2, pixel_y + block->cellsize / 2, block->cellsize - 2, blockColor);
             }
         }
     }
 }
 
-void DisplayBlocks() // aesthetics for start and end screen
+void DisplayBlocks() // aesthetics for start and end screen (displays all 7 blocks)
 {
 	TetrisBlockPropertiesTypeDef block;
 
@@ -362,15 +343,15 @@ void DisplayBlocks() // aesthetics for start and end screen
 
 //helper functions to check if current cell is within the shape of the block
 uint8_t getRowBits(uint16_t shapeData, int row)
-{
+{	//shift the row (4 bits) to the least significant 4 bits, then mask with 0xF to isolate the 4 bits.
 	uint8_t rowBits = (shapeData >> (12 - row * 4)) & 0xF;
-	return rowBits;
+	return rowBits;	//rowBits will hold the 4 bits of the current row
 }
 
-bool isCellInShape(uint8_t rowBits, int col)
+bool isCellInShape(uint8_t rowBits, int col) //check if cell is within the blockshape
 {
-    uint8_t column_bitmask = 1 << (3 - col);
-    if((rowBits & column_bitmask) != 0)
+    uint8_t column_bitmask = 1 << (3 - col); //shift 1 to column position
+    if((rowBits & column_bitmask) != 0) // if rowBits also has a 1 there, cell is within the shape
     {
     	return true;
     }
@@ -379,7 +360,6 @@ bool isCellInShape(uint8_t rowBits, int col)
     	return false;
     }
 }
-
 
 
 //RNG FUNCTIONS
@@ -411,4 +391,19 @@ uint32_t GenerateRandomNum()
     return (randomNumber % 7) + 1; // return a random number 1 through 7
 }
 
+void drawShape(const TetrisBlockPropertiesTypeDef *block, int row, int col, uint16_t color, uint16_t outline_color)
+{
+	int pixel_x = block->x + col * block->cellsize; // calculate pixel coordinates
+	int pixel_y = block->y + row * block->cellsize;
+	if(outline_color == LCD_COLOR_WHITE)
+	{
+		LCD_Draw_Square_Fill(pixel_x + block->cellsize / 2, pixel_y + block->cellsize / 2, block->cellsize, LCD_COLOR_WHITE); //for white border around block
+		LCD_Draw_Square_Fill(pixel_x + block->cellsize / 2, pixel_y + block->cellsize / 2, block->cellsize - 2, color);
+	}
+	if(outline_color == LCD_COLOR_BLACK)
+	{
+		LCD_Draw_Square_Fill(pixel_x + block->cellsize / 2, pixel_y + block->cellsize / 2, block->cellsize, LCD_COLOR_BLACK); //for white border around block
+		LCD_Draw_Square_Fill(pixel_x + block->cellsize / 2, pixel_y + block->cellsize / 2, block->cellsize - 2, color);
+	}
+}
 

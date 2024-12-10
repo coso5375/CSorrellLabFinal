@@ -23,7 +23,7 @@ void Display_Start_Screen() // Clears the screen, displays start msg and button
     LCD_SetFont(&Font16x24);
     LCD_Draw_Square_Fill(120, 140, 144, LCD_COLOR_BLACK); // black outline
     LCD_Draw_Square_Fill(120, 140, 140, LCD_COLOR_RED); //box in middle of screen
-    //DisplayBlocks(); //THIS BREAKS THE CODE???? NO IDEA WHY
+    DisplayBlocks(); //THIS BREAKS THE CODE SOMETIMES???? NO IDEA WHY?? BUFFER ISSUE!
     int x = 58; //message in middle of screen
 	int y = 110;
 	LCD_DisplayString(x, y, "Press To");
@@ -210,32 +210,30 @@ void shiftAndClearRows(uint16_t gameGrid[GRID_HEIGHT / 24][GRID_WIDTH / 24], int
         for (int col = 0; col < 10; col++)  //iterate through the row
         {
             gameGrid[row][col] = gameGrid[row - 1][col]; // copy the cells and their color and move them down 1 row
-            int pixel_x = col * 24;
-            int pixel_y = row * 24;
             if (gameGrid[row][col] != 0) 	//if cell has a block there, redraw the color, otherwise draw black
             {		// 12 = block->cellsize / 2
-                LCD_Draw_Square_Fill(pixel_x + 12, pixel_y + 12, 24, gameGrid[row][col]); //overwrite cells
+                LCD_Draw_Square_Fill((col*24) + 12, (row*24) + 12, 24, gameGrid[row][col]); //overwrite cells using pixel coordinates (row*24, col*24), using prev block color
             }
             else
             {
-                LCD_Draw_Square_Fill(pixel_x + 12, pixel_y + 12, 24, LCD_COLOR_BLACK);
+                LCD_Draw_Square_Fill((col*24) + 12, (row*24)+ 12, 24, LCD_COLOR_BLACK);
             }
         }
     }
 }
 
-int clearTetrisRows(uint16_t gameGrid[GRID_HEIGHT / 24][GRID_WIDTH / 24])
+int clearTetrisRows(uint16_t gameGrid[GRID_HEIGHT / 24][GRID_WIDTH / 24]) // WORKS NOW!!!!
 {
-    int linesCleared = 0;
+    int lines_cleared = 0;
     for (int row = 12; row >= 0; row--) // start @ bottom row and move up
     {
         if (Check_Row_Full(gameGrid, row)) // check for a full row
         {
-            linesCleared++;
+            lines_cleared++;
             shiftAndClearRows(gameGrid, row);
             row++; 		//check row again after shift took place
         }
     }
     Draw_Tetris_Grid();
-    return linesCleared;
+    return lines_cleared;
 }
