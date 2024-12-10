@@ -119,7 +119,6 @@ void drawBlock(const TetrisBlockPropertiesTypeDef *block)
             if (isCellInShape(rowBits, col) == true)  // IF cell is apart of our block shape
             {
             	drawShape(block, row, col, blockColor, LCD_COLOR_WHITE);
-
             }
         }
     }
@@ -361,8 +360,23 @@ bool isCellInShape(uint8_t rowBits, int col) //check if cell is within the block
     }
 }
 
+void drawShape(const TetrisBlockPropertiesTypeDef *block, int row, int col, uint16_t color, uint16_t outline_color)
+{
+	int pixel_x = block->x + col * block->cellsize; // calculate pixel coordinates
+	int pixel_y = block->y + row * block->cellsize;
+	if(outline_color == LCD_COLOR_WHITE)
+	{
+		LCD_Draw_Square_Fill(pixel_x + block->cellsize / 2, pixel_y + block->cellsize / 2, block->cellsize, LCD_COLOR_WHITE); //for white border around block
+		LCD_Draw_Square_Fill(pixel_x + block->cellsize / 2, pixel_y + block->cellsize / 2, block->cellsize - 2, color);
+	}
+	if(outline_color == LCD_COLOR_BLACK)
+	{
+		LCD_Draw_Square_Fill(pixel_x + block->cellsize / 2, pixel_y + block->cellsize / 2, block->cellsize, LCD_COLOR_BLACK); //for white border around block
+		LCD_Draw_Square_Fill(pixel_x + block->cellsize / 2, pixel_y + block->cellsize / 2, block->cellsize - 2, color);
+	}
+}
 
-//RNG FUNCTIONS
+//RNG FUNCTIONS cus im a boss and dont wanna do them in applicationcode
 RNG_HandleTypeDef hrng;
 
 void RNG_Init() // pretty sure theres a HAL function that does this for us? Cant find the proper one
@@ -389,21 +403,5 @@ uint32_t GenerateRandomNum()
         }
     }
     return (randomNumber % 7) + 1; // return a random number 1 through 7
-}
-
-void drawShape(const TetrisBlockPropertiesTypeDef *block, int row, int col, uint16_t color, uint16_t outline_color)
-{
-	int pixel_x = block->x + col * block->cellsize; // calculate pixel coordinates
-	int pixel_y = block->y + row * block->cellsize;
-	if(outline_color == LCD_COLOR_WHITE)
-	{
-		LCD_Draw_Square_Fill(pixel_x + block->cellsize / 2, pixel_y + block->cellsize / 2, block->cellsize, LCD_COLOR_WHITE); //for white border around block
-		LCD_Draw_Square_Fill(pixel_x + block->cellsize / 2, pixel_y + block->cellsize / 2, block->cellsize - 2, color);
-	}
-	if(outline_color == LCD_COLOR_BLACK)
-	{
-		LCD_Draw_Square_Fill(pixel_x + block->cellsize / 2, pixel_y + block->cellsize / 2, block->cellsize, LCD_COLOR_BLACK); //for white border around block
-		LCD_Draw_Square_Fill(pixel_x + block->cellsize / 2, pixel_y + block->cellsize / 2, block->cellsize - 2, color);
-	}
 }
 

@@ -35,8 +35,6 @@ int main(void)
   initialise_monitor_handles();
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
-
   // The default system configuration function is "suspect" so we need to make our own clock configuration
   // Note - You, the developer, MAY have to play with some of this coniguration as you progress in your project
   SystemClockOverride();
@@ -47,9 +45,9 @@ int main(void)
   Button_Init();
   Initialize_Button_Interrupt();
   RNG_Init();    //initialize RNG
+  TIM6_Init();
   Display_Start_Screen();
   HAL_Delay(500);
-
   while(1) //loop to wait until start button is pressed
   {
 	  uint32_t eventsToRun = getScheduledEvents();
@@ -61,22 +59,13 @@ int main(void)
 		  break; // exit loop so that we go into main loop
 	  }
   }
-  uint32_t lastGameTick = HAL_GetTick(); //used to track every 3 secs
 
   while (1)
   {
-	  uint32_t currentTime = HAL_GetTick();
-
-
-	  if ((currentTime - lastGameTick) >= 1000) //constantly checking for 3 seconds elasped (not 3 seconds right now change before submit)
-	  {
-		  addSchedulerEvent(GAME_TICK_EVENT); //if itsw been 3 seconds, schedule game event
-		  lastGameTick = currentTime;    //update tick
-	  }
 
 	  uint32_t eventsToRun = getScheduledEvents();
 
-	  if (eventsToRun & GAME_TICK_EVENT)
+	  if (eventsToRun & GAME_TICK_EVENT) //tim6 interrupt 3 seconds
 	  {
 		  Gameplay();
 		  removeSchedulerEvents(GAME_TICK_EVENT);

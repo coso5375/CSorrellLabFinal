@@ -65,6 +65,42 @@ void EXTI0_IRQHandler()
 
 
 
+//TIMER CODE 	////////////////////////////////////////////////////////////////////////////////////
+TIM_HandleTypeDef htim6;
+void TIM6_Init()
+{
+	//dont need to enable clock????
+    htim6.Instance = TIM6;
+    htim6.Init.Prescaler = 4499;
+    htim6.Init.Period = 39999;
+    htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+    htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE; //default
+
+    if (HAL_TIM_Base_Init(&htim6) != HAL_OK)    // Initialize TIM6
+    {
+        while(1)
+        {
+        	//error handler
+        }
+    }
+
+    if (HAL_TIM_Base_Start_IT(&htim6) != HAL_OK) //start the timer in interrupt mode (THIS IS CONFUSING)
+    {
+        while(1)
+        {
+        	//error handler
+        }
+    }
+    HAL_NVIC_EnableIRQ(TIM6_DAC_IRQn);   //enable interrupts
+}
+
+void TIM6_DAC_IRQHandler()
+{
+    HAL_TIM_IRQHandler(&htim6);  //using hal tim irq handler
+    addSchedulerEvent(GAME_TICK_EVENT); // gameplay event to move blocks down
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 void LCD_Visual_Demo(void)
 {
 	visualDemo();

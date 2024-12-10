@@ -13,9 +13,8 @@
 #include <stdio.h>
 #include "stm32f4xx_hal.h"
 
-
-#define GRID_HEIGHT 320
-#define GRID_WIDTH 240
+#define GRID_HEIGHT LCD_PIXEL_HEIGHT
+#define GRID_WIDTH LCD_PIXEL_WIDTH
 
 #define NONE 0 //macros for moving block
 #define MOVE_DOWN 1
@@ -55,5 +54,6 @@ void moveBlock(int MOVE, TetrisBlockPropertiesTypeDef *block);
 //RNG functions
 void RNG_Init();
 uint32_t GenerateRandomNum();
+
 
 #endif /* INC_BLOCKHANDLING_H_ */
