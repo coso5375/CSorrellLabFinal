@@ -62,14 +62,14 @@ void Draw_Tetris_Grid() // Draws tetris grid lines (for 24x24 cells)
 void Gameplay() // Handles the game tick scheduled event. Moves block down every 3 seconds when theres no collision, checks for full rows
 //If collision is met, locks block in place and spawns a new one
 {
-    if (!detectCollision(&activeBlock, gameGrid, NONE, DOWN))
+    if (!detectCollision(&activeBlock, gameGrid, NONE, MOVE_DOWN))
     {
-        moveBlockDown(&activeBlock);
+        moveBlock(MOVE_DOWN, &activeBlock);
     }
     else
     {
         lockBlock(&activeBlock, gameGrid);
-        uint8_t clearedRows = clearTetrisRows(gameGrid);
+        int clearedRows = clearTetrisRows(gameGrid);
         if(clearedRows == 1) // updating game stats
         {
         	singles++;
@@ -86,42 +86,38 @@ void Gameplay() // Handles the game tick scheduled event. Moves block down every
     }
 }
 
-void RotateEvent() // Check if rotation is possible. If so, rotate
+void RotateEvent()
 {
-	if (canRotate(&activeBlock, gameGrid))
+	if (!detectCollision(&activeBlock, gameGrid, ROTATE, ROTATE))
 	{
-		rotateBlock(&activeBlock);
+		moveBlock(ROTATE, &activeBlock);
 	}
-	else
-	{
-		return; // cant rotate
-		//maybe put a debug statement here?
-	}
+
 }
-//TMRW combine these into moveblock function
+
 void MoveLeftEvent()
 {
-    if (!detectCollision(&activeBlock, gameGrid, LEFT, NONE))
+    if (!detectCollision(&activeBlock, gameGrid, MOVE_LEFT, NONE))
     {
-        moveBlockLeft(&activeBlock);
+        moveBlock(MOVE_LEFT, &activeBlock);
     }
 }
 
 void MoveRightEvent()
 {
-    if (!detectCollision(&activeBlock, gameGrid, RIGHT, NONE))
+    if (!detectCollision(&activeBlock, gameGrid, MOVE_RIGHT, NONE))
     {
-        moveBlockRight(&activeBlock);
+        moveBlock(MOVE_RIGHT, &activeBlock);
     }
 }
 
-void MoveBlockDownEvent() // Moves block all the way to bottom of the grid
+void MoveBlockDownEvent() // Moves block all the way to bottom of the grid (DOESNT WORK)
 {
-	 while (!detectCollision(&activeBlock, gameGrid, NONE, DOWN))
+	 while (!detectCollision(&activeBlock, gameGrid, NONE, MOVE_DOWN))
 	 {
-		 moveBlockDown(&activeBlock); //move block all the way down (until collision)
+		 moveBlock(MOVE_DOWN, &activeBlock); //move block all the way down (until collision)
 	 }
-
+	 //now works but is inconsistent?? check tomorrow
 	 lockBlock(&activeBlock, gameGrid); //this handles the same way as tickhandler
 	 spawnBlock(&activeBlock, GenerateRandomNum());
 }
@@ -163,7 +159,7 @@ void Display_End_Screen() // Display stats, elapsed time
     x += 10;
     LCD_DisplayChar(x, y, (seconds / 10) + '0'); //display the tens place seconds
     x += Font16x24.Width;
-    LCD_DisplayChar(x, y, (seconds % 10) + '0'); // display the ones place seconds
+    LCD_DisplayChar(x, y, (seconds % 10) + '0'); //ones place seconds
 
     LCD_SetFont(&Font12x12);
 
@@ -195,59 +191,51 @@ void Display_End_Screen() // Display stats, elapsed time
 }
 
 
-uint8_t clearTetrisRows(uint16_t gameGrid[GRID_HEIGHT / 24][GRID_WIDTH / 24]) // Checks for full rows. If one is found, clear it and shift every row above it down 1.
+bool Check_Row_Full(uint16_t gameGrid[GRID_HEIGHT / 24][GRID_WIDTH / 24], int startingRow)
 {
-    uint8_t linesCleared = 0;
-    bool fullRow;
-    for (int row = 12; row >= 0; row--) //starting at bottom row, traverse upwards
+    for (int col = 0; col < 10; col++)
     {
-        for (int col = 0; col < 10; col++) // check if row is completely full
+        if (gameGrid[startingRow][col] == 0)
         {
-            if (gameGrid[row][col] == 0) //if any cell is empty, row isn't complete
-            {
-                fullRow = false;
-                break;
-            }
+            return false;
         }
-        if (fullRow == true)
-        {
-            linesCleared++;
-            for (int col = 0; col < 10; col++) // loop thru and set each cell to 0 to clear it
-            {
-                gameGrid[row][col] = 0;
-                int pixel_x = col * 24; // get cells pixel coords for lcd drawing
-                int pixel_y = row * 24;
-                LCD_Draw_Square_Fill(pixel_x + 12, pixel_y + 12, 24, LCD_COLOR_BLACK); //set to black
-            }
-            for (int i = row; i > 0; i--) // move every row down 1 row (i = row traverse, starting @ current row)
-            {
-                for (int col = 0; col < 10; col++)
-                {
-                    gameGrid[i][col] = gameGrid[i - 1][col]; //copy the rows color/block data down
-                    int pixel_x = col * 24;
-                    int pixel_y = i * 24;
-                    if (gameGrid[i][col] != 0) // if the cell has a block
-                    {
-                        LCD_Draw_Square_Fill(pixel_x + 12, pixel_y + 12, 24, gameGrid[i][col]);//redraw new row with the old block colors
-                    }
-                    else
-                    {
-                        LCD_Draw_Square_Fill(pixel_x + 12, pixel_y + 12, 24, LCD_COLOR_BLACK); //set to black to clear
-                    }
-                }
-            }
-            for (int col = 0; col < 10; col++) // clear new top row
-            {
-                gameGrid[0][col] = 0;
-                int pixel_x = col * 24;
-                LCD_Draw_Square_Fill(pixel_x + 12, 12, 24, LCD_COLOR_BLACK); // set top row to black
-            }
-            row++; //recheck row after shift
-        }
-        Draw_Tetris_Grid(); // redraw grid
     }
-    return linesCleared; //# of lines cleared
+    return true; //every cell in the row !=0, so row is full
 }
 
+void shiftAndClearRows(uint16_t gameGrid[GRID_HEIGHT / 24][GRID_WIDTH / 24], int startingRow)
+{
+    for (int row = startingRow; row > 0; row--) //start at current row and move UP
+    {
+        for (int col = 0; col < 10; col++)  //iterate through the row
+        {
+            gameGrid[row][col] = gameGrid[row - 1][col]; // copy the cells and their color and move them down 1 row
+            int pixel_x = col * 24;
+            int pixel_y = row * 24;
+            if (gameGrid[row][col] != 0) 	//if cell has a block there, redraw the color, otherwise draw black
+            {		// 12 = block->cellsize / 2
+                LCD_Draw_Square_Fill(pixel_x + 12, pixel_y + 12, 24, gameGrid[row][col]); //overwrite cells
+            }
+            else
+            {
+                LCD_Draw_Square_Fill(pixel_x + 12, pixel_y + 12, 24, LCD_COLOR_BLACK);
+            }
+        }
+    }
+}
 
-
+int clearTetrisRows(uint16_t gameGrid[GRID_HEIGHT / 24][GRID_WIDTH / 24])
+{
+    int linesCleared = 0;
+    for (int row = 12; row >= 0; row--) // start @ bottom row and move up
+    {
+        if (Check_Row_Full(gameGrid, row)) // check for a full row
+        {
+            linesCleared++;
+            shiftAndClearRows(gameGrid, row);
+            row++; 		//check row again after shift took place
+        }
+    }
+    Draw_Tetris_Grid();
+    return linesCleared;
+}

@@ -21,7 +21,9 @@ void RotateEvent();
 void MoveLeftEvent();
 void MoveRightEvent();
 void MoveBlockDownEvent();
-uint8_t clearTetrisRows(uint16_t gameGrid[GRID_HEIGHT / 24][GRID_WIDTH / 24]);
+int clearTetrisRows(uint16_t gameGrid[GRID_HEIGHT / 24][GRID_WIDTH / 24]);
+void shiftAndClearRows(uint16_t gameGrid[GRID_HEIGHT / 24][GRID_WIDTH / 24], int startingRow);
+bool Check_Row_Full(uint16_t gameGrid[GRID_HEIGHT / 24][GRID_WIDTH / 24], int startingRow);
 
 
 

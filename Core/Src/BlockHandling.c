@@ -75,35 +75,35 @@ const BlockShape Z = {
     },
     .color = LCD_COLOR_RED
 };
-//TMRW combine these into moveblock function
 
-void rotateBlock(TetrisBlockPropertiesTypeDef *block)
+void moveBlock(int MOVE, TetrisBlockPropertiesTypeDef *block)
 {
-    deleteBlock(block); // delete the previous shape off the screen
-    block->rotation = (block->rotation + 1) % 4; // new rotation will be: (0 + 1) % 4 = 1 (modulo so rotation never exceeds 3)
-    drawBlock(block);
+	if(MOVE==MOVE_LEFT)
+	{
+		deleteBlock(block);
+		block->x -= block->cellsize;
+		drawBlock(block);
+	}
+	if(MOVE==MOVE_RIGHT)
+	{
+		deleteBlock(block);
+		block->x += block->cellsize;
+		drawBlock(block);
+	}
+	if(MOVE==MOVE_DOWN)
+	{
+		deleteBlock(block);
+		block->y += block->cellsize;
+		drawBlock(block);
+	}
+	if(MOVE==ROTATE)
+	{
+		deleteBlock(block); // delete the previous shape off the screen
+		block->rotation = (block->rotation + 1) % 4; // new rotation will be: (0 + 1) % 4 = 1 (modulo so rotation never exceeds 3)
+		drawBlock(block);
+	}
 }
 
-void moveBlockDown(TetrisBlockPropertiesTypeDef *block)
-{
-    deleteBlock(block);
-    block->y += block->cellsize;
-    drawBlock(block);
-}
-
-void moveBlockLeft(TetrisBlockPropertiesTypeDef *block)
-{
-    deleteBlock(block);
-    block->x -= block->cellsize;
-    drawBlock(block);
-}
-
-void moveBlockRight(TetrisBlockPropertiesTypeDef *block)
-{
-    deleteBlock(block);
-    block->x += block->cellsize;
-    drawBlock(block);
-}
 
 void drawBlock(const TetrisBlockPropertiesTypeDef *block)
 {
@@ -190,9 +190,69 @@ void spawnBlock(TetrisBlockPropertiesTypeDef *block, uint32_t blockType)
 
 bool detectCollision(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGrid[GRID_HEIGHT / block->cellsize][GRID_WIDTH / block->cellsize], int MOVE_X, int MOVE_Y)
 {
+	int horizontal;
+	int vertical;
+	if(MOVE_X == MOVE_LEFT)
+	{
+		horizontal = -1;
+	}
+	if(MOVE_X == NONE)
+	{
+		horizontal = 0;
+	}
+	if(MOVE_X == MOVE_RIGHT)
+	{
+		horizontal = 1;
+	}
+	if(MOVE_Y == MOVE_DOWN)
+	{
+		vertical = 1;
+	}
+	if(MOVE_Y == NONE)
+	{
+		vertical = 0;
+	}
+	if(MOVE_X == ROTATE && MOVE_Y == ROTATE) // CHECKING rotation collisions
+	{
+		//here we will "pretend" the rotation goes through
+		int rotation = (block->rotation + 1) % 4; // find the next rotation #
+		uint16_t rotatedShapeData = block->shapeType->shape_rotations[rotation]; // get the 16 bit shape data for our newly rotated shape
+		int blockTopLeftX = block->x / block->cellsize; //grab cell x,y coords
+		int blockTopLeftY = block->y / block->cellsize;
+
+		for (int row = 0; row < 4; row++)  //iterate through the rotated blocks 4x4 block shape
+		{
+			uint8_t rowBits = getRowBits(rotatedShapeData, row);
+			for (int col = 0; col < 4; col++)
+			{
+				if (isCellInShape(rowBits, col) == true)  // check each bit, if we have a shape there, we need to fill in that dell
+				{
+					int GridCellX = blockTopLeftX + col; // grabbing block cells x,y coords
+					int GridCellY = blockTopLeftY + row;
+
+					//checking allowed boundaries
+					if (GridCellX < 0 || GridCellX >= (GRID_WIDTH / block->cellsize))
+					{
+						return true; //collision so block cannot rotqte
+					}
+					if (GridCellY < 0 || GridCellY >= (GRID_HEIGHT / block->cellsize))
+					{
+						return true;
+					}
+					//checking for collisions with other blocks already placed
+					if (gameGrid[GridCellY][GridCellX] != 0)
+					{
+						return true;
+					}
+				}
+			}
+		}
+		return false; //no rotation collision detected
+	}
+	//checking movement collisions
     uint16_t shapeData = block->shapeType->shape_rotations[block->rotation % 4]; // grab 16-bit shape
-    int blockTopLeftX = (block->x / block->cellsize) + MOVE_X; // find the x,y coords of the shape in the grid
-    int blockTopLeftY = (block->y / block->cellsize) + MOVE_Y;
+    int blockTopLeftX = (block->x / block->cellsize) + horizontal; // find the x,y coords of the "new" shape in the grid
+    int blockTopLeftY = (block->y / block->cellsize) + vertical;
     for (int row = 0; row < 4; row++)
     {
         uint8_t rowBits = getRowBits(shapeData, row);
@@ -221,43 +281,6 @@ bool detectCollision(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGri
     return false; //NO collisions
 }
 
-bool canRotate(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGrid[GRID_HEIGHT / block->cellsize][GRID_WIDTH / block->cellsize])
-{
-    //here we will "pretend" the rotation goes through
-    int rotation = (block->rotation + 1) % 4; // find the next rotation #
-    uint16_t rotatedShapeData = block->shapeType->shape_rotations[rotation]; // get the 16 bit shape data for our newly rotated shape
-    int blockTopLeftX = block->x / block->cellsize; //grab cell x,y coords
-    int blockTopLeftY = block->y / block->cellsize;
-
-    for (int row = 0; row < 4; row++)  //iterate through the rotated blocks 4x4 block shape
-    {
-        uint8_t rowBits = getRowBits(rotatedShapeData, row);
-        for (int col = 0; col < 4; col++)
-        {
-            if (isCellInShape(rowBits, col) == true)  // check each bit, if we have a shape there, we need to fill in that dell
-            {
-                int GridCellX = blockTopLeftX + col; // grabbing block cells x,y coords
-                int GridCellY = blockTopLeftY + row;
-
-                //checking allowed boundaries
-                if (GridCellX < 0 || GridCellX >= (GRID_WIDTH / block->cellsize))
-                {
-                    return false; //collision so block cannot rotqte
-                }
-                if (GridCellY < 0 || GridCellY >= (GRID_HEIGHT / block->cellsize))
-                {
-                	return false;
-                }
-                //checking for collisions with other blocks already placed
-                if (gameGrid[GridCellY][GridCellX] != 0)
-                {
-                    return false;
-                }
-            }
-        }
-    }
-    return true; //no rotation collision detected
-}
 
 void drawBlockBlackOutline(const TetrisBlockPropertiesTypeDef *block) // just used for displayBlocks()
 {
@@ -357,25 +380,6 @@ bool isCellInShape(uint8_t rowBits, int col)
     }
 }
 
-void moveBlock(int MOVE, TetrisBlockPropertiesTypeDef *block)
-{
-	if(MOVE==MOVE_LEFT)
-	{
-		//move left logic
-	}
-	if(MOVE==MOVE_RIGHT)
-	{
-
-	}
-	if(MOVE==MOVE_DOWN)
-	{
-
-	}
-	if(MOVE==ROTATE)
-	{
-
-	}
-}
 
 
 //RNG FUNCTIONS
