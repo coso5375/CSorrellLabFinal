@@ -42,20 +42,13 @@ void ApplicationInit(void)
 	#endif // COMPILE_TOUCH_FUNCTIONS
 
 
-
 }
-void EXTI0_IRQHandler()
+void EXTI0_IRQHandler() // copied from lab5
 {
     EXTI_HandleTypeDef localStruct = {0};
     localStruct.Line = EXTI_LINE_0;
-
-    // Temporarily disable the interrupt to prevent re-entry
     HAL_NVIC_DisableIRQ(EXTI0_IRQn);
-
-    // Add the ROTATE_EVENT to the scheduler
     addSchedulerEvent(ROTATE_EVENT);
-
-    // Clear pending interrupts
     HAL_EXTI_ClearPending(&localStruct, EXTI_TRIGGER_RISING);
     HAL_NVIC_ClearPendingIRQ(EXTI0_IRQn);
 

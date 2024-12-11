@@ -8,7 +8,7 @@
 
 const BlockShape T = { // constant instances of blockshape struct
     .shape_rotations = {
-        0b0000010011100000, // default rotation
+        0b0000010011100000, // no rotation
         0b0000010001100100, // 90-degree rotation
         0b0000000011100100, // 180-degree rotation
         0b0000001001100010  //270-degree rotation
@@ -105,10 +105,12 @@ void moveBlock(int MOVE, TetrisBlockPropertiesTypeDef *block)
 }
 
 
+
+
 void drawBlock(const TetrisBlockPropertiesTypeDef *block)
 {
-    uint16_t shapeData = block->shapeType->shape_rotations[block->rotation % 4]; // get the 16bit shape for the block depending on rotation
-    uint16_t blockColor = block->shapeType->color;
+    uint16_t shapeData = block->shape->shape_rotations[block->rotation % 4]; // get the 16bit shape for the block depending on rotation
+    uint16_t blockColor = block->shape->color;
 
     for (int row = 0; row < 4; row++) //loop through the shapes 4x4 grid
     {
@@ -118,7 +120,7 @@ void drawBlock(const TetrisBlockPropertiesTypeDef *block)
         {
             if (isCellInShape(rowBits, col) == true)  // IF cell is apart of our block shape
             {
-            	drawShape(block, row, col, blockColor, LCD_COLOR_WHITE);
+            	drawBlockHelper(block, row, col, blockColor, LCD_COLOR_WHITE);
             }
         }
     }
@@ -126,8 +128,7 @@ void drawBlock(const TetrisBlockPropertiesTypeDef *block)
 
 void deleteBlock(const TetrisBlockPropertiesTypeDef *block)
 {
-    uint16_t shapeData = block->shapeType->shape_rotations[block->rotation % 4]; //grab the 16 bit shape
-
+    uint16_t shapeData = block->shape->shape_rotations[block->rotation % 4]; //grab the 16 bit shape
     for (int row = 0; row < 4; row++) //loop through the 4x4 grid of the shape
     {
         uint8_t rowBits = getRowBits(shapeData, row);
@@ -135,7 +136,7 @@ void deleteBlock(const TetrisBlockPropertiesTypeDef *block)
         {
             if (isCellInShape(rowBits, col) == true)  // IF cell is apart of our block shape
             {
-            	drawShape(block, row, col, LCD_COLOR_BLACK, LCD_COLOR_WHITE);
+            	drawBlockHelper(block, row, col, LCD_COLOR_BLACK, LCD_COLOR_WHITE);
             	LCD_Draw_Vertical_Line(GRID_WIDTH - 1, 0, GRID_HEIGHT-7, LCD_COLOR_WHITE); // for the right edge of screen
             }
         }
@@ -145,10 +146,9 @@ void deleteBlock(const TetrisBlockPropertiesTypeDef *block)
 void lockBlock(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGrid[GRID_HEIGHT / block->cellsize][GRID_WIDTH / block->cellsize])
 {
 	//**need to edit this function so that it checks for collisions before spawning a block (if grid gets full)
-    uint16_t shapeData = block->shapeType->shape_rotations[block->rotation % 4]; // get the 16 bits for the shape
+    uint16_t shapeData = block->shape->shape_rotations[block->rotation % 4]; // get the 16 bits for the shape
     int blockTopLeftX = block->x / block->cellsize; // get the top left (x,y) coords in the grid
     int blockTopLeftY = block->y / block->cellsize;
-
     for (int row = 0; row < 4; row++) // loop thru the blocks 4x4 grid of bits
     {
         uint8_t rowBits = getRowBits(shapeData, row);
@@ -165,13 +165,13 @@ void lockBlock(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGrid[GRID
 
 void spawnBlock(TetrisBlockPropertiesTypeDef *block, uint32_t blockType)
 {
-    const BlockShape* shapeType[] = {&T, &I, &L, &J, &O, &S, &Z}; // array for all 7 blocks so that random num gen can provide an int 1-7
+    const BlockShape* shape[] = {&T, &I, &L, &J, &O, &S, &Z}; // array for all 7 blocks so that random num gen can provide an int 1-7
 	block->cellsize = 24; // initialize cellsize to 24 (should be smaller for a real 10x20 tetris grid)
     block->x = (GRID_WIDTH / 2) - (block->cellsize); // setting start x coord
     block->y = 0; // start y coord
-    block->block_color = shapeType[blockType-1]->color; // initialize block color
+    block->block_color = shape[blockType-1]->color; // initialize block color
     block->rotation = 0; // start at NO rotation
-    block->shapeType = shapeType[blockType -1];
+    block->shapeType = shape[blockType -1];
     drawBlock(block);
 }
 
@@ -179,6 +179,8 @@ bool detectCollision(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGri
 {
 	int horizontal;
 	int vertical;
+
+
 	if(MOVE_X == MOVE_LEFT)
 	{
 		horizontal = -1;
@@ -203,9 +205,9 @@ bool detectCollision(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGri
 	{
 		//here we will "pretend" the rotation goes through
 		int rotation = (block->rotation + 1) % 4; // find the next rotation #
-		uint16_t rotatedShapeData = block->shapeType->shape_rotations[rotation]; // get the 16 bit shape data for our newly rotated shape
-		int blockTopLeftX = block->x / block->cellsize; //grab cell x,y coords
-		int blockTopLeftY = block->y / block->cellsize;
+		uint16_t rotatedShapeData = block->shape->shape_rotations[rotation]; // get the 16 bit shape data for our newly rotated shape
+		int blockTopLeftX = block->x / 24; //grab cell x,y coords
+		int blockTopLeftY = block->y / 24; // block->cellsize can be used instead of 24
 
 		for (int row = 0; row < 4; row++)  //iterate through the rotated blocks 4x4 block shape
 		{
@@ -215,11 +217,11 @@ bool detectCollision(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGri
 				if (isCellInShape(rowBits, col) == true)  // check each bit, if we have a shape there, we need to fill in that dell
 				{
 					//checking allowed boundaries
-					if (blockTopLeftX + col < 0 || blockTopLeftX + col >= (GRID_WIDTH / block->cellsize)) // make sure x,y coords inside boundaries
+					if (blockTopLeftX + col < 0 || blockTopLeftX + col >= (GRID_WIDTH / 24)) // make sure x,y coords inside boundaries
 					{
 						return true; //collision so block cannot rotqte
 					}
-					if (blockTopLeftY + row < 0 || blockTopLeftY + row >= (GRID_HEIGHT / block->cellsize))
+					if (blockTopLeftY + row < 0 || blockTopLeftY + row >= (GRID_HEIGHT / 24))
 					{
 						return true;
 					}
@@ -234,9 +236,9 @@ bool detectCollision(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGri
 		return false; //no rotation collision detected
 	}
 	//checking movement collisions
-    uint16_t shapeData = block->shapeType->shape_rotations[block->rotation % 4]; // grab 16-bit shape
-    int blockTopLeftX = (block->x / block->cellsize) + horizontal; // find the x,y coords of the "new" shape in the grid
-    int blockTopLeftY = (block->y / block->cellsize) + vertical;
+    uint16_t shapeData = block->shape->shape_rotations[block->rotation % 4]; // grab 16-bit shape
+    int blockTopLeftX = (block->x / 24) + horizontal; // find the x,y coords of the "new" shape in the grid
+    int blockTopLeftY = (block->y / 24) + vertical;
     for (int row = 0; row < 4; row++)
     {
         uint8_t rowBits = getRowBits(shapeData, row);
@@ -244,11 +246,11 @@ bool detectCollision(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGri
         {
             if (isCellInShape(rowBits, col) == true)  // IF cell is apart of our block shape
             {
-                if (MOVE_X != NONE && (blockTopLeftX + col < 0 || blockTopLeftX + col >= (GRID_WIDTH / block->cellsize)))
+                if (MOVE_X != NONE && (blockTopLeftX + col < 0 || blockTopLeftX + col >= (GRID_WIDTH / 24)))
                 {
                     return true; // collision with edge of grid, cant move left/right
                 }
-                if (MOVE_Y != NONE && blockTopLeftY + row >= (GRID_HEIGHT / block->cellsize))
+                if (MOVE_Y != NONE && blockTopLeftY + row >= (GRID_HEIGHT / 24))
                 {
                     return true; // collision with bottom of grid, cant move down
                 }
@@ -264,8 +266,8 @@ bool detectCollision(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGri
 
 void drawBlockBlackOutline(const TetrisBlockPropertiesTypeDef *block) // just used for displayBlocks()
 {
-    uint16_t shapeData = block->shapeType->shape_rotations[block->rotation % 4]; // get the 16bit shape for the block depending on rotation
-    uint16_t blockColor = block->shapeType->color; // grab the shapes color
+    uint16_t shapeData = block->shape->shape_rotations[block->rotation % 4]; // get the 16bit shape for the block depending on rotation
+    uint16_t blockColor = block->shape->color; // grab the shapes color
     for (int row = 0; row < 4; row++) //loop through the shapes 4x4 grid
     {
         uint8_t rowBits = getRowBits(shapeData, row);
@@ -275,7 +277,7 @@ void drawBlockBlackOutline(const TetrisBlockPropertiesTypeDef *block) // just us
         {
             if (isCellInShape(rowBits, col) == true)  // check each bit, if we have a shape there, we need to fill in that dell
             {
-            	drawShape(block, row, col, blockColor, LCD_COLOR_BLACK);
+            	drawBlockHelper(block, row, col, blockColor, LCD_COLOR_BLACK);
 //                int pixel_y = block->y + row * block->cellsize;
 //
 //                LCD_Draw_Square_Fill(pixel_x + block->cellsize / 2, pixel_y + block->cellsize / 2, block->cellsize, LCD_COLOR_BLACK);
@@ -292,49 +294,49 @@ void DisplayBlocks() // aesthetics for start and end screen (displays all 7 bloc
 
 	block.cellsize = 24;
 	block.rotation = 0;
-	block.shapeType = &I;
+	block.shape = &I;
 	block.x = 192;
 	block.y = 224;
     drawBlockBlackOutline(&block);
 	block.cellsize = 24;
 	block.rotation = 0;
-	block.shapeType = &Z;
+	block.shape = &Z;
 	block.x = 24;
 	block.y = 248;
 	drawBlockBlackOutline(&block);
 	block.cellsize = 24;
 	block.rotation = 0;
-	block.shapeType = &T;
+	block.shape = &T;
 	block.x = 96;
 	block.y = 248;
 	drawBlockBlackOutline(&block);
 	block.cellsize = 24;
 	block.rotation = 0;
-	block.shapeType = &L;
+	block.shape = &L;
 	block.x = -24;
 	block.y = 248;
 	drawBlockBlackOutline(&block);
 	block.cellsize = 24;
 	block.rotation = 0;
-	block.shapeType = &S;
+	block.shape = &S;
 	block.x = 48;
 	block.y = 224;
 	drawBlockBlackOutline(&block);
 	block.cellsize = 24;
 	block.rotation = 1;
-	block.shapeType = &J;
+	block.shape = &J;
 	block.x = 0;
 	block.y = 200;
 	drawBlockBlackOutline(&block);
 	block.cellsize = 24;
 	block.rotation = 0;
-	block.shapeType = &O;
+	block.shape = &O;
 	block.x = 168;
 	block.y = 224;
 	drawBlockBlackOutline(&block);
 	block.cellsize = 24;
 	block.rotation = 1;
-	block.shapeType = &L;
+	block.shape = &L;
 	block.x = 120;
 	block.y = 224;
 	drawBlockBlackOutline(&block);
@@ -349,8 +351,8 @@ uint8_t getRowBits(uint16_t shapeData, int row)
 
 bool isCellInShape(uint8_t rowBits, int col) //check if cell is within the blockshape
 {
-    uint8_t column_bitmask = 1 << (3 - col); //shift 1 to column position
-    if((rowBits & column_bitmask) != 0) // if rowBits also has a 1 there, cell is within the shape
+    uint8_t column = 1 << (3 - col); //shift 1 to column position (will be somthing like 0b0010 depending on col)
+    if((rowBits & column) != 0) // if rowBits also has a nonzero there, cell is within the shape
     {
     	return true;
     }
@@ -360,7 +362,7 @@ bool isCellInShape(uint8_t rowBits, int col) //check if cell is within the block
     }
 }
 
-void drawShape(const TetrisBlockPropertiesTypeDef *block, int row, int col, uint16_t color, uint16_t outline_color)
+void drawBlockHelper(const TetrisBlockPropertiesTypeDef *block, int row, int col, uint16_t color, uint16_t outline_color)
 {
 	int pixel_x = block->x + col * block->cellsize; // calculate pixel coordinates
 	int pixel_y = block->y + row * block->cellsize;

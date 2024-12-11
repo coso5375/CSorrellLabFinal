@@ -11,7 +11,6 @@
 #include "LCD_Driver.h"
 #include <stdint.h>
 #include <stdio.h>
-#include "stm32f4xx_hal.h"
 
 #define GRID_HEIGHT LCD_PIXEL_HEIGHT
 #define GRID_WIDTH LCD_PIXEL_WIDTH
@@ -35,12 +34,12 @@ typedef struct //datatype for block properties
     int x, y;
     int cellsize;
     int rotation;    // current rotation
-    const BlockShape *shapeType;   // I, T, etc
+    const BlockShape *shape;   // I, T, etc
 } TetrisBlockPropertiesTypeDef;
 
 //with a few edits, gamegrid is modular and cells can be bigger/smaller, hence gameGrids intiliatizion
 void drawBlock(const TetrisBlockPropertiesTypeDef *block);
-void drawShape(const TetrisBlockPropertiesTypeDef *block, int row, int col, uint16_t color, uint16_t outline_color);
+void drawBlockHelper(const TetrisBlockPropertiesTypeDef *block, int row, int col, uint16_t color, uint16_t outline_color);
 void deleteBlock(const TetrisBlockPropertiesTypeDef *block);
 bool detectCollision(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGrid[GRID_HEIGHT / block->cellsize][GRID_WIDTH / block->cellsize], int MOVE_X, int MOVE_Y);
 void lockBlock(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGrid[GRID_HEIGHT / block->cellsize][GRID_WIDTH / block->cellsize]);

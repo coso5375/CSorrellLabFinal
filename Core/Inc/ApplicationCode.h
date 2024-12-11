@@ -7,7 +7,6 @@
 #include "Button_Driver.h"
 #include "Scheduler.h"
 #include "GameHandling.h"
-#include "stm32f4xx_hal.h"
 
 
 

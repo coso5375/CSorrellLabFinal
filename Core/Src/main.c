@@ -33,15 +33,9 @@ extern void initialise_monitor_handles(void);
 int main(void)
 {
   initialise_monitor_handles();
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-  // The default system configuration function is "suspect" so we need to make our own clock configuration
-  // Note - You, the developer, MAY have to play with some of this coniguration as you progress in your project
   SystemClockOverride();
-
   ApplicationInit(); // Initializes the LCD functionality
-
-  //LCD_Visual_Demo();
   Button_Init();
   Initialize_Button_Interrupt();
   RNG_Init();    //initialize RNG

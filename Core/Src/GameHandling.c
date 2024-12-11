@@ -21,7 +21,7 @@ void Display_Start_Screen() // Clears the screen, displays start msg and button
     LCD_Clear(0, LCD_COLOR_WHITE);
     LCD_SetTextColor(LCD_COLOR_BLACK);
     LCD_SetFont(&Font16x24);
-    LCD_Draw_Square_Fill(120, 140, 144, LCD_COLOR_BLACK); // black outline
+    LCD_Draw_Square_Fill(120, 140, 146, LCD_COLOR_BLACK); // black outline
     LCD_Draw_Square_Fill(120, 140, 140, LCD_COLOR_RED); //box in middle of screen
     DisplayBlocks(); //THIS BREAKS THE CODE SOMETIMES???? NO IDEA WHY?? BUFFER ISSUE!
     int x = 58; //message in middle of screen
@@ -129,6 +129,8 @@ bool Check_Game_Over() // Goes through the 2nd to top row. If any cell has a blo
         if (gameGrid[2][col] != 0)
         {
             return true;
+            //printf("game over");
+
         }
     }
     return false;
@@ -143,7 +145,7 @@ void Display_End_Screen() // Display stats, elapsed time
 
     // "Game Over!"
     int x = 45, y = 10;
-    LCD_DisplayString(x, y, "Game Over!");
+    LCD_DisplayString(x, y, "GAME OVER!");
 
     // "Play Time:"
     x = 10; y = 40;
@@ -232,6 +234,8 @@ int clearTetrisRows(uint16_t gameGrid[GRID_HEIGHT / 24][GRID_WIDTH / 24]) // WOR
             lines_cleared++;
             shiftAndClearRows(gameGrid, row);
             row++; 		//check row again after shift took place
+			//printf("row cleared");
+
         }
     }
     Draw_Tetris_Grid();
