@@ -1,4 +1,0 @@
-../Core/Src/Button_Driver.c:10:6:Button_Init	32	static
-../Core/Src/Button_Driver.c:29:6:Clock_Init	16	static
-../Core/Src/Button_Driver.c:36:6:Check_Button_Status	16	static
-../Core/Src/Button_Driver.c:50:6:Initialize_Button_Interrupt	32	static
