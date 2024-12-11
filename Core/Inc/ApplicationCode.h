@@ -9,7 +9,8 @@
 #include "GameHandling.h"
 
 
-
+#define PRESCALER 4499
+#define PERIOD 54999   //values equate to interrupt every 3 seconds
 
 #ifndef INC_APPLICATIONCODE_H_
 #define INC_APPLICATIONCODE_H_

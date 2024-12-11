@@ -27,8 +27,6 @@ void ApplicationInit(void)
     LTCD_Layer_Init(0);
     LCD_Clear(0,LCD_COLOR_WHITE);
 
-
-
     #if COMPILE_TOUCH_FUNCTIONS == 1
 	InitializeLCDTouch();
 
@@ -64,8 +62,8 @@ void TIM6_Init()
 {
 	//dont need to enable clock????
     htim6.Instance = TIM6;
-    htim6.Init.Prescaler = 4499;
-    htim6.Init.Period = 39999;
+    htim6.Init.Prescaler = PRESCALER;
+    htim6.Init.Period = PERIOD;
     htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
     htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE; //default
 

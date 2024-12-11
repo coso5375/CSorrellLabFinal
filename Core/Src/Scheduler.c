@@ -16,7 +16,6 @@
 static uint32_t ScheduledEvents;
 
 
-
 uint32_t getScheduledEvents()
 {
 	return ScheduledEvents;

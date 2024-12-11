@@ -23,7 +23,6 @@ void Button_Init() // function to initialize the button
 	HAL_GPIO_Init(GPIOA, &localStruct);
 
 
-
 }
 
 void Clock_Init() // function to initalize the clock

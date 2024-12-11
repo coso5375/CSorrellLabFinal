@@ -9,11 +9,12 @@
 #define INC_BLOCKHANDLING_H_
 
 #include "LCD_Driver.h"
-#include <stdint.h>
 #include <stdio.h>
 
 #define GRID_HEIGHT LCD_PIXEL_HEIGHT
 #define GRID_WIDTH LCD_PIXEL_WIDTH
+
+#define GRID_CELLSIZE 24
 
 #define NONE 0 //macros for moving block
 #define MOVE_DOWN 1
@@ -44,7 +45,7 @@ void deleteBlock(const TetrisBlockPropertiesTypeDef *block);
 bool detectCollision(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGrid[GRID_HEIGHT / block->cellsize][GRID_WIDTH / block->cellsize], int MOVE_X, int MOVE_Y);
 void lockBlock(const TetrisBlockPropertiesTypeDef *block, uint16_t gameGrid[GRID_HEIGHT / block->cellsize][GRID_WIDTH / block->cellsize]);
 void spawnBlock(TetrisBlockPropertiesTypeDef *block, uint32_t blockType);
-void DisplayBlocks();
+void displayBlocks();
 void drawBlockBlackOutline(const TetrisBlockPropertiesTypeDef *block);
 uint8_t getRowBits(uint16_t shapeData, int row);
 bool isCellInShape(uint8_t rowBits, int col);

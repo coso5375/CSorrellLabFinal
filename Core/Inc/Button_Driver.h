@@ -17,7 +17,6 @@
 #define BUTTON_NOT_PRESSED 0
 #define G_OFFSET 6
 
-
 void Button_Init(); // function to initialize the button
 
 void Clock_Init(); // function to initalize the clock
@@ -25,27 +24,6 @@ void Clock_Init(); // function to initalize the clock
 bool Check_Button_Status();
 
 void Initialize_Button_Interrupt();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
